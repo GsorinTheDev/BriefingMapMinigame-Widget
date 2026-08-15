@@ -684,6 +684,13 @@
             units.splice(index, 1);
             
             setTimeout(() => explosion.remove(), 400);
+
+            // VÉRIFICATION DU MINIMUM DE 5 UNITÉS PAR CAMP[cite: 5]
+            const typeDestroyed = unit.type;
+            const currentCount = units.filter(u => u.type === typeDestroyed && u.active).length;
+            if (currentCount < 5) {
+                spawnUnit(typeDestroyed);
+            }
         }
 
         function checkCollisions() {
