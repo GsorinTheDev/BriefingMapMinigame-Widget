@@ -9,7 +9,7 @@ Tactical briefing map interface styled after **Ace Combat**, optimized for touch
 * **Unit Deployment:** Tap buttons to add units to your chosen side of the map.
 
 ## ⚙️ Configuration
-To change the weather location, open the code (`script.js` or `index.html`) and update your city or coordinates in the config section.
+To change the weather location clic on the parameter button top right on the screen, then type the city name, it will change the weather and city name automaticaly.
 
 ## 🚀 Getting Started
 1. Open ICUE, select iframe widget and add the code.
