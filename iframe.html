@@ -633,8 +633,6 @@
             panX = e.clientX - startX;
             panY = e.clientY - startY;
             updateTransform();
-            startX = e.clientX - panX;
-            startY = e.clientY - panY;
         });
         viewport.addEventListener('wheel', (e) => {
             e.preventDefault();
@@ -648,7 +646,7 @@
             updateTransform();
         }, { passive: false });
 
-        // --- Tactile ---
+        // --- Tactile corrigé ---
         viewport.addEventListener('touchstart', (e) => {
             if (e.touches.length === 1) {
                 isDragging = true;
@@ -664,14 +662,13 @@
         }, { passive: false });
 
         viewport.addEventListener('touchmove', (e) => {
-            e.preventDefault(); 
             if (e.touches.length === 1 && isDragging) {
+                e.preventDefault(); 
                 panX = e.touches[0].clientX - startX;
                 panY = e.touches[0].clientY - startY;
                 updateTransform();
-                startX = e.touches[0].clientX - panX;
-                startY = e.touches[0].clientY - startY;
             } else if (e.touches.length === 2) {
+                e.preventDefault();
                 const currentDistance = Math.hypot(
                     e.touches[0].clientX - e.touches[1].clientX,
                     e.touches[0].clientY - e.touches[1].clientY
@@ -694,8 +691,9 @@
 
         viewport.addEventListener('touchend', (e) => {
             if (e.touches.length < 2) lastDistance = null;
-            if (e.touches.length === 0) isDragging = false;
-            else if (e.touches.length === 1) {
+            if (e.touches.length === 0) {
+                isDragging = false;
+            } else if (e.touches.length === 1) {
                 startX = e.touches[0].clientX - panX;
                 startY = e.touches[0].clientY - panY;
                 isDragging = true;
