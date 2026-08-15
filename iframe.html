@@ -8,9 +8,9 @@
         @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
 
         :root {
-            --hud-color: #00ff41;
-            --hud-glow: rgba(0, 255, 65, 0.3);
-            --hud-glow-intense: rgba(0, 255, 65, 0.8);
+            --hud-color: #ffaa00;
+            --hud-glow: rgba(255, 170, 0, 0.3);
+            --hud-glow-intense: rgba(255, 170, 0, 0.8);
         }
 
         body, html {
@@ -18,7 +18,7 @@
             padding: 0;
             width: 100%;
             height: 100%;
-            background-color: #020602;
+            background-color: #1a0800;
             color: var(--hud-color);
             font-family: 'Share Tech Mono', 'Courier New', monospace;
             overflow: hidden;
@@ -37,7 +37,7 @@
             bottom: 0;
             right: 0;
             background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
-                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(255, 170, 0, 0.02), rgba(0, 0, 255, 0.06));
             z-index: 20;
             background-size: 100% 2px, 3px 100%;
             pointer-events: none;
@@ -215,7 +215,7 @@
         }
 
         .modal-content {
-            background: #040d04;
+            background: #1a0800;
             border: 2px solid var(--hud-color);
             box-shadow: 0 0 25px var(--hud-glow);
             padding: 30px;
@@ -288,8 +288,8 @@
             left: 0;
             transform-origin: 0 0;
             background-image: 
-                linear-gradient(var(--grid-color, rgba(0, 255, 65, 0.08)) 1px, transparent 1px),
-                linear-gradient(90deg, var(--grid-color, rgba(0, 255, 65, 0.08)) 1px, transparent 1px);
+                linear-gradient(var(--grid-color, rgba(255, 170, 0, 0.08)) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-color, rgba(255, 170, 0, 0.08)) 1px, transparent 1px);
             background-size: 50px 50px;
             transition: background-image 0.3s ease;
         }
@@ -299,7 +299,7 @@
             height: 100%;
             object-fit: contain;
             opacity: 0.7;
-            filter: grayscale(100%) contrast(150%) brightness(60%) sepia(100%) hue-rotate(80deg) drop-shadow(0 0 10px var(--hud-glow));
+            filter: grayscale(100%) contrast(150%) brightness(60%) sepia(100%) hue-rotate(300deg) drop-shadow(0 0 10px var(--hud-glow));
             position: absolute;
             top: 0;
             left: 0;
@@ -670,7 +670,7 @@
                 panY = e.touches[0].clientY - startY;
                 updateTransform();
                 startX = e.touches[0].clientX - panX;
-                startY = e.touches[0].clientY - panY;
+                startY = e.touches[0].clientY - startY;
             } else if (e.touches.length === 2) {
                 const currentDistance = Math.hypot(
                     e.touches[0].clientX - e.touches[1].clientX,
