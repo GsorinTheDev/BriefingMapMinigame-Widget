@@ -27,15 +27,19 @@
             transition: color 0.3s ease;
         }
 
+        /* GRISE GLOBALE SUR TOUT LE WIDGET */
         body::before {
             content: " ";
             display: block;
             position: absolute;
             top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
-                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(255, 170, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-image: 
+                linear-gradient(rgba(255, 170, 0, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 170, 0, 0.05) 1px, transparent 1px),
+                linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(255, 170, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 50px 50px, 50px 50px, 100% 2px, 3px 100%;
             z-index: 20;
-            background-size: 100% 2px, 3px 100%;
             pointer-events: none;
         }
 
@@ -45,7 +49,7 @@
             width: 100%; height: 15%;
             background: linear-gradient(to bottom, transparent 0%, rgba(255, 255, 255, 0.3) 80%, var(--hud-glow-intense));
             animation: sweep 4s linear infinite;
-            z-index: 15;
+            z-index: 21; /* Au-dessus de la grille globale */
             pointer-events: none;
             opacity: 0.7;
             box-shadow: 0 10px 20px var(--hud-glow);
@@ -169,6 +173,57 @@
         }
         .btn-enemy:hover { background: rgba(255, 0, 60, 0.2); }
 
+        /* SCOREBOARD EN BAS */
+        .hud-scoreboard {
+            position: absolute;
+            bottom: 20px; left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 40px;
+            font-size: 1.1rem;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 8px 25px;
+            border: 1px solid var(--hud-glow);
+            box-shadow: 0 0 15px var(--hud-glow);
+            pointer-events: auto;
+            letter-spacing: 1px;
+        }
+        .score-ally { color: #00bfff; text-shadow: 0 0 5px #00bfff; }
+        .score-enemy { color: #ff003c; text-shadow: 0 0 5px #ff003c; }
+
+        /* KILLFEED EN BAS À DROITE */
+        .killfeed-container {
+            position: absolute;
+            bottom: 70px; right: 20px;
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 6px;
+            align-items: flex-end;
+            z-index: 40;
+            pointer-events: none;
+            max-width: 300px;
+        }
+
+        .killfeed-item {
+            background: rgba(0, 0, 0, 0.85);
+            border-left: 3px solid;
+            padding: 6px 12px;
+            font-size: 0.85rem;
+            box-shadow: 0 0 8px rgba(0,0,0,0.5);
+            animation: fadeInOut 5s forwards;
+            white-space: nowrap;
+            letter-spacing: 1px;
+        }
+        .killfeed-item.ally { border-color: #00bfff; color: #00bfff; text-shadow: 0 0 4px #00bfff; }
+        .killfeed-item.enemy { border-color: #ff003c; color: #ff003c; text-shadow: 0 0 4px #ff003c; }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateX(20px); }
+            10% { opacity: 1; transform: translateX(0); }
+            80% { opacity: 1; transform: translateX(0); }
+            100% { opacity: 0; transform: translateX(20px); display: none; }
+        }
+
         #settings-modal {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -243,11 +298,6 @@
             position: absolute;
             top: 0; left: 0;
             transform-origin: 0 0;
-            background-image: 
-                linear-gradient(var(--grid-color, rgba(255, 170, 0, 0.08)) 1px, transparent 1px),
-                linear-gradient(90deg, var(--grid-color, rgba(255, 170, 0, 0.08)) 1px, transparent 1px);
-            background-size: 50px 50px;
-            /* Optimisation GPU */
             will-change: transform;
         }
 
@@ -397,7 +447,16 @@
             <button id="btn-spawn-ally" class="btn-tactical btn-ally">> DEPLOY ALLY</button>
             <button id="btn-spawn-enemy" class="btn-tactical btn-enemy">> DEPLOY ENEMY</button>
         </div>
+
+        <!-- TABLEAU DES SCORES EN BAS -->
+        <div class="hud-scoreboard">
+            <span class="score-ally">ALLIES: <span id="score-ally-val">0</span></span>
+            <span class="score-enemy">ENEMIES: <span id="score-enemy-val">0</span></span>
+        </div>
     </div>
+
+    <!-- KILLFEED EN BAS À DROITE -->
+    <div id="killfeed" class="killfeed-container"></div>
 
     <div id="settings-modal">
         <div class="modal-content">
@@ -560,7 +619,28 @@
         }));
 
         let units = [];
-        let frameCount = 0; // Compteur pour optimiser la cadence de création des tracés
+        let frameCount = 0;
+        let scores = { ally: 0, enemy: 0 };
+
+        function recordKill(killer, victim) {
+            scores[killer.type]++;
+            document.getElementById('score-ally-val').textContent = scores.ally;
+            document.getElementById('score-enemy-val').textContent = scores.enemy;
+
+            const killfeed = document.getElementById('killfeed');
+            const item = document.createElement('div');
+            item.className = `killfeed-item ${killer.type}`;
+            
+            const killerName = killer.type === 'ally' ? 'ALLIED UNIT' : 'HOSTILE BANDIT';
+            const victimName = victim.type === 'ally' ? 'ALLIED UNIT' : 'HOSTILE BANDIT';
+            item.textContent = `> ${killerName} DESTROYED ${victimName}`;
+            
+            killfeed.appendChild(item);
+
+            setTimeout(() => {
+                item.remove();
+            }, 5000);
+        }
 
         function spawnUnit(type, x = null, y = null) {
             if (x === null) x = Math.random() * mapWidth;
@@ -607,27 +687,27 @@
         }
 
         function checkCollisions() {
-    for (let i = 0; i < units.length; i++) {
-        for (let j = i + 1; j < units.length; j++) {
-            const u1 = units[i], u2 = units[j];
-            if (u1.type !== u2.type && u1.active && u2.active) {
-                if (Math.hypot(u1.x - u2.x, u1.y - u2.y) < 20) {
-                    // Une unité sur deux disparaît aléatoirement lors de la collision
-                    if (Math.random() < 0.5) {
-                        destroyUnit(i);
-                    } else {
-                        destroyUnit(j);
+            for (let i = 0; i < units.length; i++) {
+                for (let j = i + 1; j < units.length; j++) {
+                    const u1 = units[i], u2 = units[j];
+                    if (u1.type !== u2.type && u1.active && u2.active) {
+                        if (Math.hypot(u1.x - u2.x, u1.y - u2.y) < 20) {
+                            if (Math.random() < 0.5) {
+                                recordKill(u2, u1);
+                                destroyUnit(i);
+                            } else {
+                                recordKill(u1, u2);
+                                destroyUnit(j);
+                            }
+                            return; 
+                        }
                     }
-                    return; 
                 }
             }
         }
-    }
-}
 
         function animate() {
             frameCount++;
-            // On ne crée un point de tracé qu'une frame sur 3 pour alléger drastiquement le DOM
             const shouldAddTrail = (frameCount % 3 === 0);
 
             units.forEach(unit => {
@@ -679,7 +759,6 @@
                 unit.x += Math.cos(unit.angle) * unit.speed * 2;
                 unit.y += Math.sin(unit.angle) * unit.speed * 2;
 
-                // --- GESTION DU TRACÉ OPTIMISÉ ---
                 if (shouldAddTrail) {
                     const trailX = unit.x + 8;
                     const trailY = unit.y + 8;
@@ -693,10 +772,9 @@
                     unit.trailPoints.push({ el: trailEl, age: 0 });
                 }
 
-                // Vieillissement et nettoyage des points de tracé
                 for (let k = unit.trailPoints.length - 1; k >= 0; k--) {
                     let p = unit.trailPoints[k];
-                    p.age += 3; // On incrémente plus vite puisque l'ajout est fait tous les 3 ticks
+                    p.age += 3;
                     if (p.age > 120) {
                         p.el.remove();
                         unit.trailPoints.splice(k, 1);
