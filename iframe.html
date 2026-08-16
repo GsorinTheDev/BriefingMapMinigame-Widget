@@ -47,7 +47,7 @@
             position: absolute;
             top: -20%; left: 0;
             width: 100%; height: 15%;
-            background: linear-gradient(to bottom, transparent 0%, rgba(255, 224, 112, 0.3) 80%, var(--hud-glow-intense));
+            background: linear-gradient(to bottom, transparent 0%, rgba(255, 223, 87, 0.3) 80%, var(--hud-glow-intense));
             animation: sweep 4s linear infinite;
             z-index: 21;
             pointer-events: none;
@@ -129,10 +129,14 @@
             transform: rotate(45deg);
         }
 
-        .hud-clock {
+        .hud-clock, .hud-date {
             font-size: 1.3rem;
             text-shadow: 0 0 5px var(--hud-color);
             letter-spacing: 2px;
+        }
+        
+        .hud-date {
+            letter-spacing: 1px;
         }
 
         .hud-controls {
@@ -425,6 +429,7 @@
                     <span id="weather-temp">--°C</span>
                 </div>
                 
+                <div id="hud-date" class="hud-date">00.00.0000</div>
                 <div id="hud-clock" class="hud-clock">00:00:00</div>
 
                 <button id="btn-open-settings" class="btn-settings" title="Paramètres HUD">
@@ -475,11 +480,8 @@
         <div id="tactical-map">
             <img id="map-image" src="https://upload.wikimedia.org/wikipedia/commons/e/ec/World_map_blank_without_borders.svg" alt="World Map" draggable="false">
             
-            <!-- POINTS ALLIÉS & ENNEMIS COHÉRENTS AVEC LA CARTE (PROJECTION ÉQUIRECTANGULAIRE 3000x1500) -->
-            <!-- Point allié dynamique lié à la météo -->
             <div id="weather-marker" class="marker objective" style="left: 1487px; top: 356px;" data-label="NANTES NORD [QG ALLIÉ]"></div>
             
-            <!-- Bases et Objectifs Stratégiques Mondiaux -->
             <div class="marker objective" style="left: 800px; top: 420px;" data-label="OURED [QG OSEAN]"></div>
             <div class="marker objective" style="left: 1530px; top: 330px;" data-label="GRACEMERIA [BASE EMMERIA]"></div>
             <div class="marker enemy objective" style="left: 1500px; top: 750px;" data-label="B7R [LA TABLE RONDE]">
@@ -502,18 +504,25 @@
 
         function updateClock() {
             const clockElement = document.getElementById('hud-clock');
+            const dateElement = document.getElementById('hud-date');
             const now = new Date();
+            
             clockElement.textContent = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+            
+            const day = String(now.getDate()).padStart(2, '0');
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const year = now.getFullYear();
+            dateElement.textContent = `${day}.${month}.${year}`;
         }
         updateClock();
         setInterval(updateClock, 1000);
 
         const weatherPaths = {
-    sunny: '<circle cx="12" cy="12" r="3" fill="none" stroke-width="2"/><line x1="12" y1="4" x2="12" y2="2" stroke-width="2"/><line x1="12" y1="20" x2="12" y2="22" stroke-width="2"/><line x1="4" y1="12" x2="2" y2="12" stroke-width="2"/><line x1="20" y1="12" x2="22" y2="12" stroke-width="2"/><line x1="6.3" y1="6.3" x2="4.9" y2="4.9" stroke-width="2"/><line x1="17.7" y1="17.7" x2="19.1" y2="19.1" stroke-width="2"/><line x1="6.3" y1="17.7" x2="4.9" y2="19.1" stroke-width="2"/><line x1="17.7" y1="6.3" x2="19.1" y2="4.9" stroke-width="2"/>',
-    cloudy: '<path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>',
-    rain: '<path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><line x1="8" y1="22" x2="6" y2="25" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="22" x2="10" y2="25" stroke-width="2" stroke-linecap="round"/><line x1="16" y1="22" x2="14" y2="25" stroke-width="2" stroke-linecap="round"/>',
-    storm: '<path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><polyline points="13 16 10 20 13 20 10 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'
-};
+            sunny: '<circle cx="12" cy="12" r="3" fill="none" stroke-width="2"/><line x1="12" y1="4" x2="12" y2="2" stroke-width="2"/><line x1="12" y1="20" x2="12" y2="22" stroke-width="2"/><line x1="4" y1="12" x2="2" y2="12" stroke-width="2"/><line x1="20" y1="12" x2="22" y2="12" stroke-width="2"/><line x1="6.3" y1="6.3" x2="4.9" y2="4.9" stroke-width="2"/><line x1="17.7" y1="17.7" x2="19.1" y2="19.1" stroke-width="2"/><line x1="6.3" y1="17.7" x2="4.9" y2="19.1" stroke-width="2"/><line x1="17.7" y1="6.3" x2="19.1" y2="4.9" stroke-width="2"/>',
+            cloudy: '<path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>',
+            rain: '<path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><line x1="8" y1="22" x2="6" y2="25" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="22" x2="10" y2="25" stroke-width="2" stroke-linecap="round"/><line x1="16" y1="22" x2="14" y2="25" stroke-width="2" stroke-linecap="round"/>',
+            storm: '<path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><polyline points="13 16 10 20 13 20 10 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'
+        };
 
         function latLonToPixel(lat, lon) {
             const x = (lon + 180) * (3000 / 360);
@@ -535,7 +544,6 @@
                     else if (code >= 1 && code <= 3 || code >= 45 && code <= 48) weatherType = 'cloudy';
                     document.getElementById('weather-icon').innerHTML = weatherPaths[weatherType];
 
-                    // Mise à jour de la position et du nom du point allié météo sur la carte
                     const coords = latLonToPixel(lat, lon);
                     const weatherMarker = document.getElementById('weather-marker');
                     if (weatherMarker) {
@@ -694,32 +702,27 @@
         document.getElementById('btn-spawn-enemy').addEventListener('click', () => spawnUnit('enemy'));
 
         function destroyUnit(index) {
-    const unit = units[index];
-    unit.active = false;
-    
-    const explosion = document.createElement('div');
-    explosion.className = 'explosion';
-    explosion.style.left = `${unit.x}px`;
-    explosion.style.top = `${unit.y}px`;
-    unitsLayer.appendChild(explosion);
-    
-    unit.el.remove();
-    unit.trailPoints.forEach(p => p.el.remove());
-    units.splice(index, 1);
-    
-    setTimeout(() => explosion.remove(), 400);
+            const unit = units[index];
+            unit.active = false;
+            
+            const explosion = document.createElement('div');
+            explosion.className = 'explosion';
+            explosion.style.left = `${unit.x}px`;
+            explosion.style.top = `${unit.y}px`;
+            unitsLayer.appendChild(explosion);
+            
+            unit.el.remove();
+            unit.trailPoints.forEach(p => p.el.remove());
+            units.splice(index, 1);
+            
+            setTimeout(() => explosion.remove(), 400);
 
-    // --- VÉRIFICATION ET SPAWN AUTOMATIQUE (MINIMUM 5) ---
-    const allyCount = units.filter(u => u.type === 'ally').length;
-    const enemyCount = units.filter(u => u.type === 'enemy').length;
+            const allyCount = units.filter(u => u.type === 'ally').length;
+            const enemyCount = units.filter(u => u.type === 'enemy').length;
 
-    if (allyCount < 5) {
-        spawnUnit('ally');
-    }
-    if (enemyCount < 5) {
-        spawnUnit('enemy');
-    }
-}
+            if (allyCount < 5) spawnUnit('ally');
+            if (enemyCount < 5) spawnUnit('enemy');
+        }
 
         function checkCollisions() {
             for (let i = 0; i < units.length; i++) {
