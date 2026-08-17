@@ -17,5 +17,5 @@ To change the weather location clic on the parameter button top right on the scr
 
    Or
    
-1. Open `index.html` in your browser or display software.
-2. Enjoy your tactical setup!
+1. Open `iframe.html` in your browser or display software.
+3. Enjoy your tactical setup!
