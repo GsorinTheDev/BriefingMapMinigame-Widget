@@ -9,7 +9,7 @@ Tactical briefing map interface styled after **Ace Combat**, optimized for touch
 * **Unit Deployment:** Tap buttons to add units to your chosen side of the map.
 
 ## ⚙️ Configuration
-To change the weather location clic on the parameter button top right on the screen, then type the city name, it will change the weather and city name automaticaly.
+To change the weather location or Language clic on the parameter button top right on the screen, then type the city name, it will change the weather and city name automaticaly. For the Language you can select French or English.
 
 ## 🚀 Getting Started
 1. Open ICUE, select iframe widget and add the code.
