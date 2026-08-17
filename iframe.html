@@ -282,8 +282,7 @@
         .setting-group { margin-bottom: 20px; }
         .setting-group label { display: block; margin-bottom: 8px; font-size: 0.95rem; letter-spacing: 1px; }
         
-        .setting-group input[type="text"],
-        .setting-group select {
+        .setting-group input[type="text"] {
             width: 100%;
             padding: 10px;
             background: rgba(0, 0, 0, 0.9);
@@ -293,10 +292,38 @@
             font-size: 1rem;
             box-sizing: border-box;
             outline: none;
+            /* Indispensable pour que le clavier s'ouvre sur un écran tactile web-engine */
+            user-select: auto;
+            -webkit-user-select: auto;
+            pointer-events: auto;
         }
-        
-        .setting-group select option {
-            background: #1a0800;
+
+        /* Nouveaux styles pour les boutons de langue */
+        .lang-toggle-container {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .btn-lang {
+            flex: 1;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 1px solid var(--hud-color);
+            color: var(--hud-color);
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 1rem;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s ease;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .btn-lang.active {
+            background: rgba(255, 170, 0, 0.2);
+            box-shadow: inset 0 0 10px var(--hud-glow);
+            text-shadow: 0 0 5px var(--hud-color);
         }
 
         #viewport {
@@ -486,11 +513,12 @@
                 <button id="btn-close-settings" class="modal-close">[X]</button>
             </div>
             <div class="setting-group">
-                <label for="lang-select" id="lbl-lang">> LANGUE SYSTÈME / SYSTEM LANGUAGE</label>
-                <select id="lang-select">
-                    <option value="fr">Français (FR)</option>
-                    <option value="en">English (EN)</option>
-                </select>
+                <label id="lbl-lang">> LANGUE SYSTÈME / SYSTEM LANGUAGE</label>
+                <!-- Remplacement du select par des boutons tactiles -->
+                <div class="lang-toggle-container">
+                    <button id="btn-lang-fr" class="btn-lang active">FR</button>
+                    <button id="btn-lang-en" class="btn-lang">EN</button>
+                </div>
             </div>
             <div class="setting-group">
                 <label for="location-search" id="lbl-weather">> SECTEUR MÉTÉO (VILLE)</label>
@@ -560,6 +588,8 @@
 
         let currentLang = 'fr';
         let currentCity = "NANTES NORD";
+        let currentLat = 47.25;
+        let currentLon = -1.55;
 
         function updateLanguage() {
             const t = i18n[currentLang];
@@ -585,8 +615,21 @@
             }
         }
 
-        document.getElementById('lang-select').addEventListener('change', (e) => {
-            currentLang = e.target.value;
+        // --- NOUVEAU SYSTÈME DE LANGUE VIA BOUTONS ---
+        const btnLangFr = document.getElementById('btn-lang-fr');
+        const btnLangEn = document.getElementById('btn-lang-en');
+
+        btnLangFr.addEventListener('click', () => {
+            currentLang = 'fr';
+            btnLangFr.classList.add('active');
+            btnLangEn.classList.remove('active');
+            updateLanguage();
+        });
+
+        btnLangEn.addEventListener('click', () => {
+            currentLang = 'en';
+            btnLangEn.classList.add('active');
+            btnLangFr.classList.remove('active');
             updateLanguage();
         });
 
@@ -625,6 +668,8 @@
         }
 
         async function fetchWeather(lat, lon, locationName) {
+            currentLat = lat;
+            currentLon = lon;
             try {
                 const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code`);
                 const data = await response.json();
@@ -650,8 +695,13 @@
             } catch (e) { console.error("Erreur météo", e); }
         }
 
-        fetchWeather(47.25, -1.55, "Nantes Nord");
+        fetchWeather(currentLat, currentLon, "Nantes Nord");
         updateLanguage();
+
+        // Actualisation automatique de la météo toutes les 5 minutes (300 000 ms)
+        setInterval(() => {
+            fetchWeather(currentLat, currentLon, currentCity);
+        }, 300000);
 
         const searchInput = document.getElementById('location-search');
         let searchTimeout = null;
