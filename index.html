@@ -279,6 +279,16 @@
             text-shadow: 0 0 5px var(--hud-color);
         }
 
+        .modal-footer {
+            margin-top: 25px;
+            padding-top: 12px;
+            border-top: 1px solid var(--hud-glow);
+            text-align: center;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+            opacity: 0.55;
+        }
+
         .setting-group { margin-bottom: 20px; }
         .setting-group label { display: block; margin-bottom: 8px; font-size: 0.95rem; letter-spacing: 1px; }
         
@@ -524,6 +534,7 @@
                 <label for="location-search" id="lbl-weather">> SECTEUR MÉTÉO (VILLE)</label>
                 <input type="text" id="location-search" placeholder="Ex: Nantes, Paris, Tokyo...">
             </div>
+            <div class="modal-footer" id="lbl-credits">Créé par Kyvalon</div>
         </div>
     </div>
 
@@ -557,15 +568,16 @@
                 langLabel: "> LANGUE SYSTÈME",
                 spawnAlly: "> DÉPLOIEMENT ALLIÉ",
                 baseAlly: "> + BASE ALLIÉE",
-                spawnEnemy: "< DÉPLOIEMENT ENNEMI",
-                baseEnemy: "< + BASE ENNEMIE",
+                spawnEnemy: "DÉPLOIEMENT ENNEMI <",
+                baseEnemy: "BASE ENNEMIE + <",
                 scoreAlly: "ALLIÉS: ",
                 scoreEnemy: "ENNEMIS: ",
                 killfeedAllyMsg: "> UNITÉ ALLIÉE A DÉTRUIT",
                 killfeedEnemyMsg: "> BANDIT HOSTILE A DÉTRUIT",
                 baseAddedSuffix: " [NOUVELLE BASE]",
                 awacsUpdate: " // MAJ AWACS",
-                qgAllySuffix: " [QG ALLIÉ]"
+                qgAllySuffix: " [QG ALLIÉ]",
+                credits: "Créé par Kyvalon"
             },
             en: {
                 settingsTitle: "> SYSTEM SETTINGS",
@@ -582,7 +594,8 @@
                 killfeedEnemyMsg: "> HOSTILE BANDIT DESTROYED",
                 baseAddedSuffix: " [NEW BASE]",
                 awacsUpdate: " // AWACS UPDATE",
-                qgAllySuffix: " [ALLIED HQ]"
+                qgAllySuffix: " [ALLIED HQ]",
+                credits: "Made By Kyvalon"
             }
         };
 
@@ -598,6 +611,7 @@
             document.getElementById('lbl-weather').textContent = t.weatherLabel;
             document.getElementById('location-search').placeholder = t.weatherPlaceholder;
             document.getElementById('lbl-lang').textContent = t.langLabel;
+            document.getElementById('lbl-credits').textContent = t.credits;
 
             document.getElementById('btn-spawn-ally').textContent = t.spawnAlly;
             document.getElementById('btn-base-ally').textContent = t.baseAlly;
