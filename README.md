@@ -17,5 +17,5 @@ To change the weather location or Language clic on the parameter button top righ
 
    Or
    
-1. Open `iframe.html` in your browser or display software.
+1. Open `index.html` in your browser or display software.
 3. Enjoy your tactical setup!
