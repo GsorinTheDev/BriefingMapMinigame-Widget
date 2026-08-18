@@ -1,0 +1,1474 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Briefing Tactique - Strangereal</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+        :root {
+            --hud-color: #ffaa00;
+            --hud-glow: rgba(255, 170, 0, 0.3);
+            --hud-glow-intense: rgba(255, 170, 0, 0.8);
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, #640a0a 0%, #1a0202 70%, #0d0000 100%);
+            color: var(--hud-color);
+            font-family: 'Share Tech Mono', 'Courier New', monospace;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            transition: color 0.3s ease;
+        }
+
+        body::before {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background-image: 
+                linear-gradient(rgba(255, 170, 0, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 170, 0, 0.05) 1px, transparent 1px),
+                linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(255, 170, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 50px 50px, 50px 50px, 100% 2px, 3px 100%;
+            z-index: 20;
+            pointer-events: none;
+        }
+
+        .radar-sweep {
+            position: absolute;
+            top: -20%; left: 0;
+            width: 100%; height: 15%;
+            background: linear-gradient(to bottom, transparent 0%, rgba(255, 223, 87, 0.3) 80%, var(--hud-glow-intense));
+            animation: sweep 4s linear infinite;
+            z-index: 21;
+            pointer-events: none;
+            opacity: 0.7;
+            box-shadow: 0 10px 20px var(--hud-glow);
+        }
+
+        @keyframes sweep {
+            0% { transform: translateY(-10vh); }
+            100% { transform: translateY(120vh); }
+        }
+
+        .hud {
+            position: absolute;
+            z-index: 30;
+            pointer-events: none;
+            padding: 20px;
+            width: calc(100% - 40px);
+            height: calc(100% - 40px);
+            top: 20px; left: 20px;
+            box-sizing: border-box;
+            border: 2px solid var(--hud-glow);
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5), 0 0 10px var(--hud-glow);
+        }
+
+        .hud-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--hud-glow);
+            padding-bottom: 10px;
+            gap: 15px;
+        }
+
+        .hud-title {
+            font-size: 1.3rem;
+            text-shadow: 0 0 5px var(--hud-color);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .hud-info-group {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            white-space: nowrap;
+            pointer-events: auto;
+        }
+
+        .hud-weather {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.3rem;
+            text-shadow: 0 0 5px var(--hud-color);
+        }
+
+        .weather-icon, .settings-icon {
+            width: 24px;
+            height: 24px;
+            fill: var(--hud-color);
+            stroke: var(--hud-color);
+            filter: drop-shadow(0 0 3px var(--hud-color));
+        }
+
+        .btn-settings {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s ease;
+        }
+
+        .btn-settings:hover {
+            transform: rotate(45deg);
+        }
+
+        .hud-clock, .hud-date {
+            font-size: 1.3rem;
+            text-shadow: 0 0 5px var(--hud-color);
+            letter-spacing: 2px;
+        }
+        
+        .hud-date {
+            letter-spacing: 1px;
+        }
+
+        .hud-controls {
+            position: absolute;
+            top: 75px; left: 20px; right: 20px;
+            pointer-events: auto;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .btn-tactical {
+            background: rgba(0, 0, 0, 0.8);
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 1rem;
+            padding: 10px 20px;
+            border: 1px solid;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.2s ease-out;
+            letter-spacing: 1px;
+        }
+
+        .btn-tactical:active { transform: scale(0.95); }
+
+        .btn-tactical.active {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(0.95);
+            box-shadow: inset 0 0 15px currentColor;
+        }
+
+        .btn-ally {
+            color: #00bfff;
+            border-color: #00bfff;
+            box-shadow: inset 0 0 10px rgba(0, 191, 255, 0.2), 0 0 5px rgba(0, 191, 255, 0.3);
+            text-shadow: 0 0 5px #00bfff;
+        }
+        .btn-ally:hover { background: rgba(0, 191, 255, 0.2); }
+
+        .btn-enemy {
+            color: #ff003c;
+            border-color: #ff003c;
+            box-shadow: inset 0 0 10px rgba(255, 0, 60, 0.2), 0 0 5px rgba(255, 0, 60, 0.3);
+            text-shadow: 0 0 5px #ff003c;
+        }
+        .btn-enemy:hover { background: rgba(255, 0, 60, 0.2); }
+
+        .hud-scoreboard {
+            position: absolute;
+            bottom: 20px; left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 40px;
+            font-size: 1.1rem;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 8px 25px;
+            border: 1px solid var(--hud-glow);
+            box-shadow: 0 0 15px var(--hud-glow);
+            pointer-events: auto;
+            letter-spacing: 1px;
+        }
+        .score-ally { color: #00bfff; text-shadow: 0 0 5px #00bfff; }
+        .score-enemy { color: #ff003c; text-shadow: 0 0 5px #ff003c; }
+
+        .killfeed-container {
+            position: absolute;
+            bottom: 70px; right: 20px;
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 6px;
+            align-items: flex-end;
+            z-index: 40;
+            pointer-events: none;
+            max-width: 300px;
+        }
+
+        .killfeed-item {
+            background: rgba(0, 0, 0, 0.85);
+            border-left: 3px solid;
+            padding: 6px 12px;
+            font-size: 0.85rem;
+            box-shadow: 0 0 8px rgba(0,0,0,0.5);
+            animation: fadeInOut 5s forwards;
+            white-space: nowrap;
+            letter-spacing: 1px;
+        }
+        .killfeed-item.ally { border-color: #00bfff; color: #00bfff; text-shadow: 0 0 4px #00bfff; }
+        .killfeed-item.enemy { border-color: #ff003c; color: #ff003c; text-shadow: 0 0 4px #ff003c; }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateX(20px); }
+            10% { opacity: 1; transform: translateX(0); }
+            80% { opacity: 1; transform: translateX(0); }
+            100% { opacity: 0; transform: translateX(20px); display: none; }
+        }
+
+        #settings-modal {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+
+        #settings-modal.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-content {
+            background: #1a0800;
+            border: 2px solid var(--hud-color);
+            box-shadow: 0 0 25px var(--hud-glow);
+            padding: 30px;
+            width: 350px;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        .modal-header {
+            font-size: 1.2rem;
+            border-bottom: 1px solid var(--hud-glow);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--hud-color);
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 1.2rem;
+            cursor: pointer;
+            text-shadow: 0 0 5px var(--hud-color);
+        }
+
+        .modal-footer {
+            margin-top: 25px;
+            padding-top: 12px;
+            border-top: 1px solid var(--hud-glow);
+            text-align: center;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+            opacity: 0.55;
+        }
+
+        .setting-group { margin-bottom: 20px; }
+        .setting-group label { display: block; margin-bottom: 8px; font-size: 0.95rem; letter-spacing: 1px; }
+        
+        .setting-group input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 1px solid var(--hud-color);
+            color: var(--hud-color);
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 1rem;
+            box-sizing: border-box;
+            outline: none;
+            /* Indispensable pour que le clavier s'ouvre sur un écran tactile web-engine */
+            user-select: auto;
+            -webkit-user-select: auto;
+            pointer-events: auto;
+        }
+
+        /* Nouveaux styles pour les boutons de langue */
+        .lang-toggle-container {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .btn-lang {
+            flex: 1;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 1px solid var(--hud-color);
+            color: var(--hud-color);
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 1rem;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s ease;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .btn-lang.active {
+            background: rgba(255, 170, 0, 0.2);
+            box-shadow: inset 0 0 10px var(--hud-glow);
+            text-shadow: 0 0 5px var(--hud-color);
+        }
+
+        /* --- LECTURE SEULE (monitoring IA / CP) --- */
+        .btn-tactical.readonly {
+            cursor: default;
+            pointer-events: none;
+        }
+
+        .btn-tactical:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+        }
+
+        @keyframes insufficientFlash {
+            0%, 100% { box-shadow: inset 0 0 10px rgba(255, 0, 60, 0.2); }
+            50% { box-shadow: inset 0 0 25px rgba(255, 0, 60, 0.95); border-color: #ff003c; color: #ff003c; }
+        }
+        .flash-insufficient { animation: insufficientFlash 0.35s ease 2; }
+
+        /* --- MODALES DE JEU (briefing / fin de mission) --- */
+        .game-modal {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 110;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+        .game-modal.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-content.wide { width: 420px; max-width: calc(100vw - 60px); max-height: calc(100vh - 60px); overflow-y: auto; }
+
+        .modal-text { font-size: 0.9rem; line-height: 1.6; letter-spacing: 0.5px; margin: 0 0 15px 0; }
+
+        .modal-list { margin: 0 0 20px 0; padding-left: 20px; font-size: 0.85rem; line-height: 1.8; letter-spacing: 0.5px; }
+
+        .modal-stats { font-size: 0.9rem; line-height: 1.9; letter-spacing: 1px; margin-bottom: 20px; border-top: 1px solid var(--hud-glow); border-bottom: 1px solid var(--hud-glow); padding: 12px 0; }
+        .modal-stats span { color: #fff; }
+
+        .modal-cta { width: 100%; text-align: center; }
+
+        #endgame-modal .modal-content { border-color: #00bfff; box-shadow: 0 0 25px rgba(0, 191, 255, 0.4); }
+        #endgame-modal.defeat .modal-content { border-color: #ff003c; box-shadow: 0 0 25px rgba(255, 0, 60, 0.4); }
+        #endgame-modal.defeat #lbl-endgame-title { color: #ff003c; text-shadow: 0 0 5px #ff003c; }
+        #endgame-modal.victory #lbl-endgame-title { color: #00bfff; text-shadow: 0 0 5px #00bfff; }
+
+        /* --- QG (base critique) --- */
+        .marker.hq {
+            width: 20px; height: 20px;
+            border-width: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .marker.hq::before {
+            content: "★";
+            font-size: 10px;
+            color: #001824;
+            line-height: 1;
+        }
+
+        /* --- BARRES DE VIE DES BASES --- */
+        .base-hp-track {
+            position: absolute;
+            top: -13px; left: -15px;
+            width: 45px; height: 5px;
+            background: rgba(0, 0, 0, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            z-index: 8;
+        }
+        .base-hp-fill {
+            height: 100%;
+            width: 100%;
+            background: #00bfff;
+            transition: width 0.25s ease, background-color 0.25s ease;
+        }
+        .base-hp-fill.enemy { background: #ff003c; }
+        .base-hp-fill.critical { background: #ffcc00 !important; }
+
+        /* --- BANNIÈRE DE VAGUE --- */
+        #wave-banner {
+            position: absolute;
+            top: 38%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.8rem;
+            color: #ff003c;
+            text-shadow: 0 0 15px #ff003c;
+            letter-spacing: 3px;
+            z-index: 90;
+            opacity: 0;
+            pointer-events: none;
+            text-align: center;
+            white-space: nowrap;
+        }
+        #wave-banner.show {
+            animation: waveBannerAnim 3s ease-out forwards;
+        }
+        @keyframes waveBannerAnim {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.85); }
+            15% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            85% { opacity: 1; }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(1.05); }
+        }
+
+        #viewport {
+            width: 100%; height: 100%;
+            position: relative;
+            touch-action: none; 
+            z-index: 1;
+        }
+
+        #tactical-map {
+            width: 3000px; height: 1500px;
+            position: absolute;
+            top: 0; left: 0;
+            transform-origin: 0 0;
+            will-change: transform;
+        }
+
+        #map-image {
+            width: 100%; height: 100%;
+            object-fit: contain;
+            opacity: 0.7;
+            filter: grayscale(100%) contrast(150%) brightness(60%) sepia(100%) hue-rotate(300deg) drop-shadow(0 0 10px var(--hud-glow));
+            position: absolute;
+            top: 0; left: 0;
+            z-index: -1;
+            pointer-events: none; 
+            user-select: none;
+        }
+
+        .marker {
+            position: absolute;
+            width: 15px; height: 15px;
+            border: 2px solid #00bfff;
+            background-color: rgba(0, 191, 255, 0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 10px #00bfff;
+        }
+        .marker::after {
+            content: attr(data-label);
+            position: absolute;
+            top: 20px; left: 20px;
+            color: #00bfff;
+            font-size: 14px;
+            white-space: nowrap;
+            text-shadow: 0 0 5px #00bfff;
+            background: rgba(0,0,0,0.7);
+            padding: 2px 5px;
+            border-left: 2px solid #00bfff;
+        }
+        .marker.enemy {
+            border-color: #ff003c;
+            background-color: rgba(255, 0, 60, 0.3);
+            box-shadow: 0 0 10px #ff003c;
+        }
+        .marker.enemy::after {
+            color: #ff003c;
+            text-shadow: 0 0 5px #ff003c;
+            border-left-color: #ff003c;
+        }
+
+        @keyframes pulse {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(2.5); opacity: 0; }
+        }
+        .marker-pulse {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 100%; height: 100%;
+            border: 2px solid #ff003c;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite ease-out;
+            pointer-events: none;
+        }
+
+        #units-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .unit {
+            position: absolute;
+            width: 16px; height: 16px;
+            background-color: currentColor;
+            clip-path: polygon(100% 50%, 0% 0%, 0% 100%);
+            will-change: transform;
+            transform-origin: center;
+            z-index: 6;
+        }
+        .unit.ally { color: #00bfff; filter: drop-shadow(0 0 3px #00bfff); }
+        .unit.enemy { color: #ff003c; filter: drop-shadow(0 0 3px #ff003c); }
+
+        .trail {
+            position: absolute;
+            width: 4px; height: 4px;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 4;
+            will-change: opacity;
+        }
+        .trail.ally { background-color: #00bfff; box-shadow: 0 0 2px #00bfff; }
+        .trail.enemy { background-color: #ff003c; box-shadow: 0 0 2px #ff003c; }
+
+        .explosion {
+            position: absolute;
+            width: 20px; height: 20px;
+            background: #ffffff;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            animation: explode 0.4s ease-out forwards;
+            z-index: 7;
+        }
+        @keyframes explode {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(3); opacity: 0; background: #ff003c; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="radar-sweep"></div>
+
+    <div class="hud">
+        <div class="hud-header">
+            <div id="hud-title" class="hud-title">> NANTES NORD // AWACS UPDATE</div>
+            
+            <div class="hud-info-group">
+                <div class="hud-weather" id="weather-container">
+                    <svg id="weather-icon" class="weather-icon" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="4"></circle>
+                        <line x1="12" y1="2" x2="12" y2="5" stroke-width="2" stroke-linecap="round"/>
+                        <line x1="12" y1="19" x2="12" y2="22" stroke-width="2" stroke-linecap="round"/>
+                        <line x1="2" y1="12" x2="5" y2="12" stroke-width="2" stroke-linecap="round"/>
+                        <line x1="19" y1="12" x2="22" y2="12" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <span id="weather-temp">--°C</span>
+                </div>
+                
+                <div id="hud-date" class="hud-date">00.00.0000</div>
+                <div id="hud-clock" class="hud-clock">00:00:00</div>
+
+                <button id="btn-open-settings" class="btn-settings" title="Paramètres HUD">
+                    <svg class="settings-icon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="4" y1="21" x2="4" y2="14"></line>
+                        <line x1="4" y1="10" x2="4" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12" y2="3"></line>
+                        <line x1="20" y1="21" x2="20" y2="16"></line>
+                        <line x1="20" y1="12" x2="20" y2="3"></line>
+                        <line x1="1" y1="14" x2="7" y2="14"></line>
+                        <line x1="9" y1="8" x2="15" y2="8"></line>
+                        <line x1="17" y1="16" x2="23" y2="16"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        
+        <div class="hud-controls">
+            <!-- Côté Alliés : commandes du joueur -->
+            <div style="display: flex; flex-direction: column; gap: 15px; align-items: flex-start;">
+                <div id="lbl-cp-display" class="btn-tactical btn-ally readonly">CP: <span id="cp-val">100</span></div>
+                <button id="btn-spawn-ally" class="btn-tactical btn-ally">> DEPLOY ALLY</button>
+                <button id="btn-base-ally" class="btn-tactical btn-ally">> + BASE ALLY</button>
+            </div>
+            
+            <!-- Côté Ennemis : monitoring de la menace (IA) -->
+            <div style="display: flex; flex-direction: column; gap: 15px; align-items: flex-end;">
+                <div class="btn-tactical btn-enemy readonly"><span id="lbl-wave-word">VAGUE</span> <span id="wave-val">1</span></div>
+                <div class="btn-tactical btn-enemy readonly"><span id="lbl-enemybases-word">BASES HOSTILES</span>: <span id="enemy-base-count">3</span></div>
+            </div>
+        </div>
+
+        <div class="hud-scoreboard">
+            <span class="score-ally" id="lbl-score-ally">ALLIES: <span id="score-ally-val">0</span></span>
+            <span class="score-enemy" id="lbl-score-enemy">ENEMIES: <span id="score-enemy-val">0</span></span>
+        </div>
+    </div>
+
+    <div id="wave-banner"></div>
+
+    <div id="killfeed" class="killfeed-container"></div>
+
+    <div id="settings-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span id="lbl-settings-title">> PARAMÈTRES SYSTÈME</span>
+                <button id="btn-close-settings" class="modal-close">[X]</button>
+            </div>
+            <div class="setting-group">
+                <label id="lbl-lang">> LANGUE SYSTÈME / SYSTEM LANGUAGE</label>
+                <!-- Remplacement du select par des boutons tactiles -->
+                <div class="lang-toggle-container">
+                    <button id="btn-lang-fr" class="btn-lang active">FR</button>
+                    <button id="btn-lang-en" class="btn-lang">EN</button>
+                </div>
+            </div>
+            <div class="setting-group">
+                <label for="location-search" id="lbl-weather">> SECTEUR MÉTÉO (VILLE)</label>
+                <input type="text" id="location-search" placeholder="Ex: Nantes, Paris, Tokyo...">
+            </div>
+            <div class="modal-footer" id="lbl-credits">Créé par Kyvalon</div>
+        </div>
+    </div>
+
+    <div id="briefing-modal" class="game-modal active">
+        <div class="modal-content wide">
+            <div class="modal-header">
+                <span id="lbl-briefing-title">> BRIEFING DE MISSION</span>
+            </div>
+            <p id="lbl-briefing-body" class="modal-text"></p>
+            <ul id="lbl-briefing-objectives" class="modal-list"></ul>
+            <button id="btn-start-mission" class="btn-tactical btn-ally modal-cta">> DÉMARRER LA MISSION</button>
+        </div>
+    </div>
+
+    <div id="endgame-modal" class="game-modal">
+        <div class="modal-content wide">
+            <div class="modal-header">
+                <span id="lbl-endgame-title">> FIN DE MISSION</span>
+            </div>
+            <p id="lbl-endgame-body" class="modal-text"></p>
+            <div id="lbl-endgame-stats" class="modal-stats"></div>
+            <button id="btn-restart-mission" class="btn-tactical btn-ally modal-cta">> RÉESSAYER</button>
+        </div>
+    </div>
+
+    <div id="viewport">
+        <div id="tactical-map">
+            <img id="map-image" src="https://gist.githubusercontent.com/GsorinTheDev/b3b1f48fbcd2c4ce8d27e5105d84e8e7/raw/797936ac970e8663fe57b3ce3bfb2ada10cd2bdf/strangereal%2520svg.svg" alt="World Map" draggable="false">
+            
+            <div id="weather-marker" class="marker objective" style="left: 1487px; top: 356px;" data-label="NANTES NORD [QG ALLIÉ]"></div>
+            
+            <div id="base-oured" class="marker objective hq" style="left: 800px; top: 420px;" data-label="OURED [QG OSEAN]"></div>
+            <div id="base-gracemeria" class="marker objective" style="left: 1530px; top: 330px;" data-label="GRACEMERIA [BASE EMMERIA]"></div>
+            <div id="base-b7r" class="marker enemy objective" style="left: 1500px; top: 750px;" data-label="B7R [LA TABLE RONDE]">
+                <div class="marker-pulse"></div>
+            </div>
+            <div id="base-comberth" class="marker enemy objective" style="left: 2350px; top: 600px;" data-label="COMBERTH HARBOR [SECTEUR HOSTILE]"></div>
+            <div id="base-bastion" class="marker enemy objective" style="left: 700px; top: 850px;" data-label="BASTION YUKTOBANIEN">
+                <div class="marker-pulse"></div>
+            </div>
+
+            <div id="units-layer"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- SYSTÈME DE TRADUCTION (i18n) ---
+        const i18n = {
+            fr: {
+                settingsTitle: "> PARAMÈTRES SYSTÈME",
+                weatherLabel: "> SECTEUR MÉTÉO (VILLE)",
+                weatherPlaceholder: "Ex: Nantes, Paris, Tokyo...",
+                langLabel: "> LANGUE SYSTÈME",
+                spawnAlly: "> DÉPLOIEMENT ALLIÉ",
+                baseAlly: "> + BASE ALLIÉE",
+                spawnEnemy: "DÉPLOIEMENT ENNEMI <",
+                baseEnemy: "BASE ENNEMIE + <",
+                scoreAlly: "ALLIÉS: ",
+                scoreEnemy: "ENNEMIS: ",
+                killfeedAllyMsg: "> UNITÉ ALLIÉE A DÉTRUIT",
+                killfeedEnemyMsg: "> BANDIT HOSTILE A DÉTRUIT",
+                baseAddedSuffix: " [NOUVELLE BASE]",
+                awacsUpdate: " // MAJ AWACS",
+                qgAllySuffix: " [QG ALLIÉ]",
+                credits: "Créé par Kyvalon",
+                waveLabel: "VAGUE",
+                enemyBasesLabel: "BASES HOSTILES",
+                briefingTitle: "> BRIEFING DE MISSION",
+                briefingBody: "Vous prenez le commandement des forces Osean. Le QG d'OURED doit tenir à tout prix.",
+                briefingObj1: "Détruisez les 3 bases hostiles : B7R, Comberth Harbor, Bastion Yuktobanien",
+                briefingObj2: "Défendez votre QG (OURED) — s'il tombe, la mission échoue",
+                briefingObj3: "Dépensez vos Points de Commandement (CP) pour déployer des unités et bâtir des bases avancées",
+                briefingObj4: "Les vagues ennemies s'intensifient toutes les 30 secondes",
+                startMissionBtn: "> DÉMARRER LA MISSION",
+                victoryTitle: "> VICTOIRE TACTIQUE",
+                victoryBody: "Toutes les bases hostiles ont été neutralisées. Excellent travail, commandant.",
+                defeatTitle: "> QG DÉTRUIT",
+                defeatBody: "Le QG d'OURED est tombé. La mission est un échec.",
+                retryBtn: "> RÉESSAYER LA MISSION",
+                statsWave: "Vague atteinte : ",
+                statsKills: "Unités ennemies détruites : ",
+                statsTime: "Durée de la mission : ",
+                waveIncoming: "VAGUE $N EN APPROCHE",
+                deployedNewBase: "> NOUVELLE BASE ALLIÉE DÉPLOYÉE",
+                baseFallEnemy: "> BASE HOSTILE DÉTRUITE",
+                baseFallAlly: "> BASE ALLIÉE PERDUE"
+            },
+            en: {
+                settingsTitle: "> SYSTEM SETTINGS",
+                weatherLabel: "> WEATHER SECTOR (CITY)",
+                weatherPlaceholder: "Ex: Nantes, Paris, Tokyo...",
+                langLabel: "> SYSTEM LANGUAGE",
+                spawnAlly: "> DEPLOY ALLY",
+                baseAlly: "> + BASE ALLY",
+                spawnEnemy: "< DEPLOY ENEMY",
+                baseEnemy: "< + BASE ENEMY",
+                scoreAlly: "ALLIES: ",
+                scoreEnemy: "ENEMIES: ",
+                killfeedAllyMsg: "> ALLIED UNIT DESTROYED",
+                killfeedEnemyMsg: "> HOSTILE BANDIT DESTROYED",
+                baseAddedSuffix: " [NEW BASE]",
+                awacsUpdate: " // AWACS UPDATE",
+                qgAllySuffix: " [ALLIED HQ]",
+                credits: "Made By Kyvalon",
+                waveLabel: "WAVE",
+                enemyBasesLabel: "HOSTILE BASES",
+                briefingTitle: "> MISSION BRIEFING",
+                briefingBody: "You take command of Osean forces. OURED HQ must hold at all costs.",
+                briefingObj1: "Destroy the 3 hostile bases: B7R, Comberth Harbor, Bastion Yuktobanien",
+                briefingObj2: "Defend your HQ (OURED) — if it falls, the mission fails",
+                briefingObj3: "Spend Command Points (CP) to deploy units and build forward bases",
+                briefingObj4: "Enemy waves intensify every 30 seconds",
+                startMissionBtn: "> START MISSION",
+                victoryTitle: "> TACTICAL VICTORY",
+                victoryBody: "All hostile bases have been neutralized. Excellent work, commander.",
+                defeatTitle: "> HQ DESTROYED",
+                defeatBody: "OURED HQ has fallen. The mission is a failure.",
+                retryBtn: "> RETRY MISSION",
+                statsWave: "Wave reached: ",
+                statsKills: "Enemy units destroyed: ",
+                statsTime: "Mission duration: ",
+                waveIncoming: "WAVE $N INCOMING",
+                deployedNewBase: "> NEW ALLIED BASE DEPLOYED",
+                baseFallEnemy: "> HOSTILE BASE DESTROYED",
+                baseFallAlly: "> ALLIED BASE LOST"
+            }
+        };
+
+        let currentLang = 'fr';
+        let currentCity = "NANTES NORD";
+        let currentLat = 47.25;
+        let currentLon = -1.55;
+
+        // --- ÉTAT DU JEU ---
+        let gameState = 'briefing'; // 'briefing' | 'playing' | 'victory' | 'defeat'
+        let commandPoints = 100;
+        const COST_DEPLOY = 15;
+        const COST_BASE = 50;
+        let waveNumber = 1;
+        let missionStartTime = null;
+        let killsAtEnd = 0;
+
+        function updateLanguage() {
+            const t = i18n[currentLang];
+            
+            document.getElementById('lbl-settings-title').textContent = t.settingsTitle;
+            document.getElementById('lbl-weather').textContent = t.weatherLabel;
+            document.getElementById('location-search').placeholder = t.weatherPlaceholder;
+            document.getElementById('lbl-lang').textContent = t.langLabel;
+            document.getElementById('lbl-credits').textContent = t.credits;
+
+            document.getElementById('btn-spawn-ally').textContent = `${t.spawnAlly} [${COST_DEPLOY} CP]`;
+            document.getElementById('btn-base-ally').textContent = `${t.baseAlly} [${COST_BASE} CP]`;
+            document.getElementById('lbl-wave-word').textContent = t.waveLabel;
+            document.getElementById('lbl-enemybases-word').textContent = t.enemyBasesLabel;
+
+            document.getElementById('lbl-score-ally').childNodes[0].nodeValue = t.scoreAlly;
+            document.getElementById('lbl-score-enemy').childNodes[0].nodeValue = t.scoreEnemy;
+
+            document.getElementById('hud-title').textContent = `> ${currentCity} ${t.awacsUpdate}`;
+            
+            const weatherMarker = document.getElementById('weather-marker');
+            if (weatherMarker) {
+                weatherMarker.setAttribute('data-label', `${currentCity}${t.qgAllySuffix}`);
+            }
+
+            document.getElementById('lbl-briefing-title').textContent = t.briefingTitle;
+            document.getElementById('lbl-briefing-body').textContent = t.briefingBody;
+            document.getElementById('lbl-briefing-objectives').innerHTML =
+                `<li>${t.briefingObj1}</li><li>${t.briefingObj2}</li><li>${t.briefingObj3}</li><li>${t.briefingObj4}</li>`;
+            document.getElementById('btn-start-mission').textContent = t.startMissionBtn;
+
+            if (gameState === 'victory' || gameState === 'defeat') {
+                renderEndgameModal();
+            }
+        }
+
+        // --- NOUVEAU SYSTÈME DE LANGUE VIA BOUTONS ---
+        const btnLangFr = document.getElementById('btn-lang-fr');
+        const btnLangEn = document.getElementById('btn-lang-en');
+
+        btnLangFr.addEventListener('click', () => {
+            currentLang = 'fr';
+            btnLangFr.classList.add('active');
+            btnLangEn.classList.remove('active');
+            updateLanguage();
+        });
+
+        btnLangEn.addEventListener('click', () => {
+            currentLang = 'en';
+            btnLangEn.classList.add('active');
+            btnLangFr.classList.remove('active');
+            updateLanguage();
+        });
+
+        // --- INTERFACE GÉNÉRALE ---
+        const modal = document.getElementById('settings-modal');
+        document.getElementById('btn-open-settings').addEventListener('click', () => modal.classList.add('active'));
+        document.getElementById('btn-close-settings').addEventListener('click', () => modal.classList.remove('active'));
+        modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('active'); });
+
+        function updateClock() {
+            const clockElement = document.getElementById('hud-clock');
+            const dateElement = document.getElementById('hud-date');
+            const now = new Date();
+            
+            clockElement.textContent = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+            
+            const day = String(now.getDate()).padStart(2, '0');
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const year = now.getFullYear();
+            dateElement.textContent = `${day}.${month}.${year}`;
+        }
+        updateClock();
+        setInterval(updateClock, 1000);
+
+        const weatherPaths = {
+            sunny: '<circle cx="12" cy="12" r="3" fill="none" stroke-width="2"/><line x1="12" y1="4" x2="12" y2="2" stroke-width="2"/><line x1="12" y1="20" x2="12" y2="22" stroke-width="2"/><line x1="4" y1="12" x2="2" y2="12" stroke-width="2"/><line x1="20" y1="12" x2="22" y2="12" stroke-width="2"/><line x1="6.3" y1="6.3" x2="4.9" y2="4.9" stroke-width="2"/><line x1="17.7" y1="17.7" x2="19.1" y2="19.1" stroke-width="2"/><line x1="6.3" y1="17.7" x2="4.9" y2="19.1" stroke-width="2"/><line x1="17.7" y1="6.3" x2="19.1" y2="4.9" stroke-width="2"/>',
+            cloudy: '<path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>',
+            rain: '<path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><line x1="8" y1="22" x2="6" y2="25" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="22" x2="10" y2="25" stroke-width="2" stroke-linecap="round"/><line x1="16" y1="22" x2="14" y2="25" stroke-width="2" stroke-linecap="round"/>',
+            storm: '<path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><polyline points="13 16 10 20 13 20 10 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'
+        };
+
+        function latLonToPixel(lat, lon) {
+            const x = (lon + 180) * (3000 / 360);
+            const y = (90 - lat) * (1500 / 180);
+            return { x, y };
+        }
+
+        async function fetchWeather(lat, lon, locationName) {
+            currentLat = lat;
+            currentLon = lon;
+            try {
+                const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code`);
+                const data = await response.json();
+                if (data && data.current) {
+                    currentCity = locationName.toUpperCase();
+                    document.getElementById('weather-temp').textContent = `${Math.round(data.current.temperature_2m)}°C`;
+                    updateLanguage(); 
+
+                    const code = data.current.weather_code;
+                    let weatherType = 'sunny';
+                    if (code >= 50 && code <= 67 || code >= 80 && code <= 82) weatherType = 'rain';
+                    else if (code >= 95) weatherType = 'storm';
+                    else if (code >= 1 && code <= 3 || code >= 45 && code <= 48) weatherType = 'cloudy';
+                    document.getElementById('weather-icon').innerHTML = weatherPaths[weatherType];
+
+                    const coords = latLonToPixel(lat, lon);
+                    const weatherMarker = document.getElementById('weather-marker');
+                    if (weatherMarker) {
+                        weatherMarker.style.left = `${coords.x}px`;
+                        weatherMarker.style.top = `${coords.y}px`;
+                    }
+                }
+            } catch (e) { console.error("Erreur météo", e); }
+        }
+
+        fetchWeather(currentLat, currentLon, "Nantes Nord");
+        updateLanguage();
+
+        // Actualisation automatique de la météo toutes les 5 minutes (300 000 ms)
+        setInterval(() => {
+            fetchWeather(currentLat, currentLon, currentCity);
+        }, 300000);
+
+        const searchInput = document.getElementById('location-search');
+        let searchTimeout = null;
+        searchInput.addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            const query = e.target.value.trim();
+            if (query.length < 2) return;
+            searchTimeout = setTimeout(async () => {
+                try {
+                    const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=1&language=fr`);
+                    const geoData = await geoRes.json();
+                    if (geoData && geoData.results && geoData.results.length > 0) {
+                        const loc = geoData.results[0];
+                        fetchWeather(loc.latitude, loc.longitude, loc.name);
+                    }
+                } catch (err) { console.error("Erreur géocodage", err); }
+            }, 500);
+        });
+
+        // --- GESTION DE LA CARTE ---
+        const viewport = document.getElementById('viewport');
+        const map = document.getElementById('tactical-map');
+        const mapWidth = 3000, mapHeight = 1500;
+        let scale = 0.5, panX = 0, panY = 0, minScale = 0.1;
+        let isDragging = false, startX, startY, lastDistance = null;
+
+        function initMap() {
+            const rect = viewport.getBoundingClientRect();
+            minScale = Math.min(rect.width / mapWidth, rect.height / mapHeight);
+            scale = Math.max(0.5, minScale); 
+            panX = (rect.width - (mapWidth * scale)) / 2;
+            panY = (rect.height - (mapHeight * scale)) / 2;
+            updateTransform();
+        }
+
+        window.addEventListener('resize', () => {
+            const rect = viewport.getBoundingClientRect();
+            minScale = Math.min(rect.width / mapWidth, rect.height / mapHeight);
+            updateTransform();
+        });
+
+        function updateTransform() {
+            const rect = viewport.getBoundingClientRect();
+            scale = Math.min(Math.max(minScale, scale), 3);
+            const scaledWidth = mapWidth * scale, scaledHeight = mapHeight * scale;
+            panX = scaledWidth <= rect.width ? (rect.width - scaledWidth) / 2 : Math.max(rect.width - scaledWidth, Math.min(panX, 0));
+            panY = scaledHeight <= rect.height ? (rect.height - scaledHeight) / 2 : Math.max(rect.height - scaledHeight, Math.min(panY, 0));
+            map.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+        }
+
+        viewport.addEventListener('mousedown', (e) => { isDragging = true; startX = e.clientX - panX; startY = e.clientY - panY; viewport.style.cursor = 'grabbing'; });
+        window.addEventListener('mouseup', () => { isDragging = false; viewport.style.cursor = 'crosshair'; });
+        window.addEventListener('mousemove', (e) => { if (!isDragging) return; panX = e.clientX - startX; panY = e.clientY - startY; updateTransform(); });
+        viewport.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const newScale = Math.min(Math.max(minScale, scale - e.deltaY * 0.001), 3);
+            const mapX = (e.clientX - panX) / scale, mapY = (e.clientY - panY) / scale;
+            scale = newScale; panX = e.clientX - (mapX * scale); panY = e.clientY - (mapY * scale);
+            updateTransform();
+        }, { passive: false });
+
+        viewport.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) { isDragging = true; startX = e.touches[0].clientX - panX; startY = e.touches[0].clientY - panY; }
+            else if (e.touches.length === 2) { isDragging = false; lastDistance = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); }
+        }, { passive: false });
+
+        viewport.addEventListener('touchmove', (e) => {
+            if (e.touches.length === 1 && isDragging) {
+                e.preventDefault(); panX = e.touches[0].clientX - startX; panY = e.touches[0].clientY - startY; updateTransform();
+            } else if (e.touches.length === 2) {
+                e.preventDefault();
+                const currentDistance = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+                const centerX = (e.touches[0].clientX + e.touches[1].clientX) / 2, centerY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+                if (lastDistance) {
+                    const newScale = Math.min(Math.max(minScale, scale * (currentDistance / lastDistance)), 3);
+                    const mapX = (centerX - panX) / scale, mapY = (centerY - panY) / scale;
+                    scale = newScale; panX = centerX - (mapX * scale); panY = centerY - (mapY * scale);
+                }
+                lastDistance = currentDistance; updateTransform();
+            }
+        }, { passive: false });
+
+        viewport.addEventListener('touchend', (e) => {
+            if (e.touches.length < 2) lastDistance = null;
+            isDragging = e.touches.length === 1;
+            if (isDragging) { startX = e.touches[0].clientX - panX; startY = e.touches[0].clientY - panY; }
+        });
+
+        initMap();
+
+        // --- SYSTÈME DE BASES (QG, alliées, hostiles) ---
+        const unitsLayer = document.getElementById('units-layer');
+
+        const BASE_HP = { hq: 260, ally: 150, enemy: 150 };
+        const BASE_SIEGE_RADIUS = 90;
+        const BASE_DAMAGE_PER_FRAME = 0.06;
+        const BASE_REGEN_PER_FRAME = 0.03;
+
+        let bases = [];
+
+        function createHpBar(markerEl, isEnemy) {
+            const track = document.createElement('div');
+            track.className = 'base-hp-track';
+            const fill = document.createElement('div');
+            fill.className = `base-hp-fill ${isEnemy ? 'enemy' : ''}`;
+            track.appendChild(fill);
+            markerEl.appendChild(track);
+            return fill;
+        }
+
+        function registerBase(el, { isEnemy, isHQ = false, name }) {
+            const x = parseFloat(el.style.left);
+            const y = parseFloat(el.style.top);
+            const maxHp = isHQ ? BASE_HP.hq : (isEnemy ? BASE_HP.enemy : BASE_HP.ally);
+            const hpFillEl = createHpBar(el, isEnemy);
+            const base = { el, x, y, isEnemy, isHQ, name, hp: maxHp, maxHp, alive: true, hpFillEl };
+            bases.push(base);
+            return base;
+        }
+
+        registerBase(document.getElementById('base-oured'), { isEnemy: false, isHQ: true, name: 'OURED' });
+        registerBase(document.getElementById('base-gracemeria'), { isEnemy: false, name: 'GRACEMERIA' });
+        registerBase(document.getElementById('base-b7r'), { isEnemy: true, name: 'B7R' });
+        registerBase(document.getElementById('base-comberth'), { isEnemy: true, name: 'COMBERTH HARBOR' });
+        registerBase(document.getElementById('base-bastion'), { isEnemy: true, name: 'BASTION YUKTOBANIEN' });
+
+        function updateBaseHpVisual(base) {
+            const pct = Math.max(0, (base.hp / base.maxHp) * 100);
+            base.hpFillEl.style.width = `${pct}%`;
+            base.hpFillEl.classList.toggle('critical', pct < 30);
+        }
+
+        function updateEnemyBaseCounter() {
+            const remaining = bases.filter(b => b.isEnemy && b.alive).length;
+            const counterEl = document.getElementById('enemy-base-count');
+            if (counterEl) counterEl.textContent = remaining;
+            return remaining;
+        }
+
+        function pushKillfeed(text, type) {
+            const killfeed = document.getElementById('killfeed');
+            const item = document.createElement('div');
+            item.className = `killfeed-item ${type}`;
+            item.textContent = text;
+            killfeed.appendChild(item);
+            setTimeout(() => item.remove(), 5000);
+        }
+
+        function destroyBase(base) {
+            base.alive = false;
+            base.hp = 0;
+            updateBaseHpVisual(base);
+
+            const explosion = document.createElement('div');
+            explosion.className = 'explosion';
+            explosion.style.left = `${base.x}px`;
+            explosion.style.top = `${base.y}px`;
+            unitsLayer.appendChild(explosion);
+            setTimeout(() => explosion.remove(), 400);
+
+            base.el.style.opacity = '0.25';
+            base.el.style.filter = 'grayscale(100%)';
+
+            if (base.isHQ) { triggerDefeat(); return; }
+
+            if (base.isEnemy) {
+                commandPoints += 30;
+                updateCPDisplay();
+                pushKillfeed(i18n[currentLang].baseFallEnemy, 'ally');
+                if (updateEnemyBaseCounter() === 0) triggerVictory();
+            } else {
+                pushKillfeed(i18n[currentLang].baseFallAlly, 'enemy');
+            }
+        }
+
+        function updateBases() {
+            if (gameState !== 'playing') return;
+            bases.forEach(base => {
+                if (!base.alive) return;
+                let nearbyEnemies = 0;
+                units.forEach(u => {
+                    if (!u.active) return;
+                    if ((base.isEnemy && u.type === 'ally') || (!base.isEnemy && u.type === 'enemy')) {
+                        if (Math.hypot(u.x - base.x, u.y - base.y) < BASE_SIEGE_RADIUS) nearbyEnemies++;
+                    }
+                });
+
+                if (nearbyEnemies > 0) {
+                    base.hp -= BASE_DAMAGE_PER_FRAME * nearbyEnemies;
+                    if (base.hp <= 0) { destroyBase(base); return; }
+                } else if (base.hp < base.maxHp) {
+                    base.hp = Math.min(base.maxHp, base.hp + BASE_REGEN_PER_FRAME);
+                }
+                updateBaseHpVisual(base);
+            });
+        }
+
+        // --- GESTION DES UNITÉS & COMBATS ---
+        let units = [];
+        let frameCount = 0;
+        let scores = { ally: 0, enemy: 0 };
+
+        function recordKill(killer, victim) {
+            scores[killer.type]++;
+            document.getElementById('score-ally-val').textContent = scores.ally;
+            document.getElementById('score-enemy-val').textContent = scores.enemy;
+
+            const msg = killer.type === 'ally' ? i18n[currentLang].killfeedAllyMsg : i18n[currentLang].killfeedEnemyMsg;
+            const victimName = victim.type === 'ally' ? 'ALLIED UNIT' : 'HOSTILE BANDIT';
+            pushKillfeed(`${msg} ${victimName}`, killer.type);
+
+            if (gameState === 'playing' && killer.type === 'ally') {
+                commandPoints += 5;
+                updateCPDisplay();
+            }
+        }
+
+        function spawnUnit(type, x = null, y = null) {
+            if (x === null || y === null) {
+                const factionBases = bases.filter(b => b.alive && (type === 'enemy' ? b.isEnemy : !b.isEnemy));
+                if (factionBases.length > 0) {
+                    const selected = factionBases[Math.floor(Math.random() * factionBases.length)];
+                    x = selected.x + (Math.random() - 0.5) * 40;
+                    y = selected.y + (Math.random() - 0.5) * 40;
+                } else {
+                    x = Math.random() * mapWidth;
+                    y = Math.random() * mapHeight;
+                }
+            }
+
+            const el = document.createElement('div');
+            el.className = `unit ${type}`;
+            unitsLayer.appendChild(el);
+
+            const unit = {
+                el, type, x, y,
+                angle: Math.random() * Math.PI * 2,
+                speed: 1 + Math.random(),
+                targetWp: null,
+                active: true,
+                orbitAngle: Math.random() * Math.PI * 2,
+                orbitRadius: 100 + Math.random() * 200,
+                baseX: x, baseY: y,
+                mode: 'patrol',
+                trailPoints: []
+            };
+            units.push(unit);
+            return unit;
+        }
+
+        function updateCPDisplay() {
+            document.getElementById('cp-val').textContent = Math.floor(commandPoints);
+        }
+
+        function flashInsufficient(el) {
+            el.classList.remove('flash-insufficient');
+            void el.offsetWidth;
+            el.classList.add('flash-insufficient');
+        }
+
+        const btnSpawnAlly = document.getElementById('btn-spawn-ally');
+        btnSpawnAlly.addEventListener('click', () => {
+            if (gameState !== 'playing') return;
+            if (commandPoints < COST_DEPLOY) { flashInsufficient(btnSpawnAlly); return; }
+            if (!bases.some(b => b.alive && !b.isEnemy)) return;
+            commandPoints -= COST_DEPLOY;
+            updateCPDisplay();
+            spawnUnit('ally');
+        });
+
+        function destroyUnit(index) {
+            const unit = units[index];
+            unit.active = false;
+            
+            const explosion = document.createElement('div');
+            explosion.className = 'explosion';
+            explosion.style.left = `${unit.x}px`;
+            explosion.style.top = `${unit.y}px`;
+            unitsLayer.appendChild(explosion);
+            
+            unit.el.remove();
+            unit.trailPoints.forEach(p => p.el.remove());
+            units.splice(index, 1);
+            
+            setTimeout(() => explosion.remove(), 400);
+
+            // Flux ambiant minimal côté allié : le QG n'est jamais totalement sans défense
+            const allyCount = units.filter(u => u.type === 'ally').length;
+            if (allyCount < 2) spawnUnit('ally');
+        }
+
+        function checkCollisions() {
+            for (let i = 0; i < units.length; i++) {
+                for (let j = i + 1; j < units.length; j++) {
+                    const u1 = units[i], u2 = units[j];
+                    if (u1.type !== u2.type && u1.active && u2.active) {
+                        if (Math.hypot(u1.x - u2.x, u1.y - u2.y) < 20) {
+                            if (Math.random() < 0.5) { recordKill(u2, u1); destroyUnit(i); } 
+                            else { recordKill(u1, u2); destroyUnit(j); }
+                            return; 
+                        }
+                    }
+                }
+            }
+        }
+
+        function animate() {
+            frameCount++;
+            const shouldAddTrail = (frameCount % 3 === 0);
+
+            units.forEach(unit => {
+                if (!unit.active) return;
+
+                if (Math.random() < 0.005) unit.mode = Math.random() > 0.5 ? 'patrol' : 'intercept';
+
+                if (unit.mode === 'patrol') {
+                    if (!unit.targetWp || Math.random() < 0.01) {
+                        const validBases = bases.filter(b => b.alive && (unit.type === 'enemy' ? b.isEnemy : !b.isEnemy));
+                        if(validBases.length > 0) {
+                             unit.targetWp = validBases[Math.floor(Math.random() * validBases.length)];
+                             unit.baseX = unit.targetWp.x; unit.baseY = unit.targetWp.y;
+                        }
+                    }
+
+                    unit.orbitAngle += (unit.speed * 0.02);
+                    const targetX = unit.baseX + Math.cos(unit.orbitAngle) * unit.orbitRadius;
+                    const targetY = unit.baseY + Math.sin(unit.orbitAngle) * unit.orbitRadius;
+                    const targetAngle = Math.atan2(targetY - unit.y, targetX - unit.x);
+                    
+                    let angleDiff = targetAngle - unit.angle;
+                    while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+                    while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+                    unit.angle += angleDiff * 0.05;
+
+                } else if (unit.mode === 'intercept') {
+                    let closestEnemy = null, minDist = Infinity;
+                    units.forEach(other => {
+                        if (other.type !== unit.type && other.active) {
+                            const dist = Math.hypot(other.x - unit.x, other.y - unit.y);
+                            if (dist < minDist) { minDist = dist; closestEnemy = other; }
+                        }
+                    });
+
+                    if (closestEnemy && minDist < 1000) {
+                        const targetAngle = Math.atan2(closestEnemy.y - unit.y, closestEnemy.x - unit.x);
+                        let angleDiff = targetAngle - unit.angle;
+                        while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+                        while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+                        unit.angle += angleDiff * 0.08; 
+                    } else {
+                        unit.mode = 'patrol'; 
+                    }
+                }
+
+                unit.x += Math.cos(unit.angle) * unit.speed * 2;
+                unit.y += Math.sin(unit.angle) * unit.speed * 2;
+
+                if (shouldAddTrail) {
+                    const trailEl = document.createElement('div');
+                    trailEl.className = `trail ${unit.type}`;
+                    trailEl.style.left = `${unit.x + 8}px`;
+                    trailEl.style.top = `${unit.y + 8}px`;
+                    unitsLayer.insertBefore(trailEl, unit.el); 
+                    unit.trailPoints.push({ el: trailEl, age: 0 });
+                }
+
+                for (let k = unit.trailPoints.length - 1; k >= 0; k--) {
+                    let p = unit.trailPoints[k];
+                    p.age += 3;
+                    if (p.age > 120) { p.el.remove(); unit.trailPoints.splice(k, 1); } 
+                    else { p.el.style.opacity = 1 - (p.age / 120); }
+                }
+
+                unit.el.style.transform = `translate(${unit.x}px, ${unit.y}px) rotate(${unit.angle * (180 / Math.PI)}deg)`;
+            });
+
+            checkCollisions();
+            updateBases();
+            requestAnimationFrame(animate);
+        }
+
+        // --- MODE PLACEMENT DE BASE ALLIÉE (TACTILE & CLIC) ---
+        let placementMode = null; 
+        let tapStartX = 0;
+        let tapStartY = 0;
+
+        const btnBaseAlly = document.getElementById('btn-base-ally');
+        const allyBaseNames = ["SAND ISLAND", "FARBANTI", "GRISWALL", "HEILIGENSTADT", "ROCA ROJA", "KESTREL FLEET"];
+
+        btnBaseAlly.addEventListener('click', () => {
+            if (gameState !== 'playing') return;
+            if (placementMode === 'ally') {
+                placementMode = null;
+                btnBaseAlly.classList.remove('active');
+                return;
+            }
+            if (commandPoints < COST_BASE) { flashInsufficient(btnBaseAlly); return; }
+            placementMode = 'ally';
+            btnBaseAlly.classList.add('active');
+        });
+
+        function addAllyBase(x, y) {
+            const baseName = allyBaseNames[Math.floor(Math.random() * allyBaseNames.length)];
+
+            const marker = document.createElement('div');
+            marker.className = 'marker objective';
+            marker.style.left = `${x}px`;
+            marker.style.top = `${y}px`;
+            marker.setAttribute('data-label', `${baseName}${i18n[currentLang].baseAddedSuffix}`);
+
+            map.appendChild(marker);
+            registerBase(marker, { isEnemy: false, name: baseName });
+            pushKillfeed(i18n[currentLang].deployedNewBase, 'ally');
+        }
+
+        viewport.addEventListener('mousedown', (e) => { tapStartX = e.clientX; tapStartY = e.clientY; });
+        viewport.addEventListener('touchstart', (e) => { if (e.touches.length === 1) { tapStartX = e.touches[0].clientX; tapStartY = e.touches[0].clientY; } }, { passive: false });
+
+        function handleMapTap(clientX, clientY) {
+            if (!placementMode || gameState !== 'playing') return;
+            const dist = Math.hypot(clientX - tapStartX, clientY - tapStartY);
+            if (dist > 10) return; 
+
+            if (commandPoints < COST_BASE) {
+                flashInsufficient(btnBaseAlly);
+                placementMode = null;
+                btnBaseAlly.classList.remove('active');
+                return;
+            }
+
+            const rect = viewport.getBoundingClientRect();
+            const mapX = ((clientX - rect.left) - panX) / scale;
+            const mapY = ((clientY - rect.top) - panY) / scale;
+
+            commandPoints -= COST_BASE;
+            updateCPDisplay();
+            addAllyBase(mapX, mapY);
+
+            placementMode = null;
+            btnBaseAlly.classList.remove('active');
+        }
+
+        window.addEventListener('mouseup', (e) => { handleMapTap(e.clientX, e.clientY); });
+        viewport.addEventListener('touchend', (e) => { if (e.changedTouches.length === 1) { handleMapTap(e.changedTouches[0].clientX, e.changedTouches[0].clientY); } });
+
+        // --- VAGUES ENNEMIES (IA) ---
+        let enemySpawnInterval = 4000;
+        let enemySpawnTimer = null;
+        let waveEscalationTimer = null;
+
+        function scheduleEnemySpawn() {
+            enemySpawnTimer = setTimeout(() => {
+                if (gameState === 'playing' && bases.some(b => b.isEnemy && b.alive)) {
+                    spawnUnit('enemy');
+                }
+                scheduleEnemySpawn();
+            }, enemySpawnInterval);
+        }
+
+        function showWaveBanner(n) {
+            const banner = document.getElementById('wave-banner');
+            banner.textContent = i18n[currentLang].waveIncoming.replace('$N', n);
+            banner.classList.remove('show');
+            void banner.offsetWidth;
+            banner.classList.add('show');
+        }
+
+        function startWaveSystem() {
+            scheduleEnemySpawn();
+            waveEscalationTimer = setInterval(() => {
+                if (gameState !== 'playing' || !bases.some(b => b.isEnemy && b.alive)) return;
+                waveNumber++;
+                document.getElementById('wave-val').textContent = waveNumber;
+                enemySpawnInterval = Math.max(1000, enemySpawnInterval - 300);
+                showWaveBanner(waveNumber);
+                const burst = Math.min(waveNumber + 1, 6);
+                for (let i = 0; i < burst; i++) spawnUnit('enemy');
+            }, 30000);
+        }
+
+        // --- RÉGÉNÉRATION DES POINTS DE COMMANDEMENT ---
+        let cpRegenTimer = null;
+        function startCPRegen() {
+            cpRegenTimer = setInterval(() => {
+                if (gameState !== 'playing') return;
+                commandPoints = Math.min(300, commandPoints + 3);
+                updateCPDisplay();
+            }, 1000);
+        }
+
+        function setControlsEnabled(enabled) {
+            btnSpawnAlly.disabled = !enabled;
+            btnBaseAlly.disabled = !enabled;
+        }
+
+        // --- BRIEFING / DÉMARRAGE DE MISSION ---
+        document.getElementById('btn-start-mission').addEventListener('click', () => {
+            gameState = 'playing';
+            missionStartTime = Date.now();
+            scores = { ally: 0, enemy: 0 };
+            document.getElementById('score-ally-val').textContent = 0;
+            document.getElementById('score-enemy-val').textContent = 0;
+            document.getElementById('briefing-modal').classList.remove('active');
+            setControlsEnabled(true);
+            startCPRegen();
+            startWaveSystem();
+        });
+
+        // --- FIN DE MISSION (VICTOIRE / DÉFAITE) ---
+        function formatDuration(ms) {
+            const totalSec = Math.floor(ms / 1000);
+            const m = String(Math.floor(totalSec / 60)).padStart(2, '0');
+            const s = String(totalSec % 60).padStart(2, '0');
+            return `${m}:${s}`;
+        }
+
+        function renderEndgameModal() {
+            const t = i18n[currentLang];
+            const isVictory = gameState === 'victory';
+            const modal = document.getElementById('endgame-modal');
+            modal.classList.toggle('victory', isVictory);
+            modal.classList.toggle('defeat', !isVictory);
+
+            document.getElementById('lbl-endgame-title').textContent = isVictory ? t.victoryTitle : t.defeatTitle;
+            document.getElementById('lbl-endgame-body').textContent = isVictory ? t.victoryBody : t.defeatBody;
+            document.getElementById('lbl-endgame-stats').innerHTML =
+                `${t.statsWave}<span>${waveNumber}</span><br>` +
+                `${t.statsKills}<span>${scores.ally}</span><br>` +
+                `${t.statsTime}<span>${missionStartTime ? formatDuration(Date.now() - missionStartTime) : '00:00'}</span>`;
+            document.getElementById('btn-restart-mission').textContent = t.retryBtn;
+        }
+
+        function endMission(state) {
+            if (gameState === 'victory' || gameState === 'defeat') return;
+            gameState = state;
+            clearTimeout(enemySpawnTimer);
+            clearInterval(waveEscalationTimer);
+            clearInterval(cpRegenTimer);
+            setControlsEnabled(false);
+            placementMode = null;
+            btnBaseAlly.classList.remove('active');
+            renderEndgameModal();
+            document.getElementById('endgame-modal').classList.add('active');
+        }
+
+        function triggerVictory() { endMission('victory'); }
+        function triggerDefeat() { endMission('defeat'); }
+
+        document.getElementById('btn-restart-mission').addEventListener('click', () => location.reload());
+
+        updateEnemyBaseCounter();
+        updateCPDisplay();
+        setControlsEnabled(false);
+
+        for (let i = 0; i < 5; i++) spawnUnit('ally');
+        for (let i = 0; i < 6; i++) spawnUnit('enemy');
+
+        animate();
+    </script>
+</body>
+</html>
