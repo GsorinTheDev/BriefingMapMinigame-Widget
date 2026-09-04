@@ -8,23 +8,76 @@
         @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
 
         :root {
-            --hud-color: #ffaa00;
-            --hud-glow: rgba(255, 170, 0, 0.3);
-            --hud-glow-intense: rgba(255, 170, 0, 0.8);
+            /* THÈME PAR DÉFAUT : ACE COMBAT 0 (The Belkan War) */
+            --hud-rgb: 255, 170, 0;
+            --bg-1: #640a0a;
+            --bg-2: #1a0202;
+            --bg-3: #0d0000;
+            --ally-rgb: 0, 191, 255;
+            --enemy-rgb: 255, 0, 60;
+        }
+
+        /* THÈME : ACE COMBAT 4 (Shattered Skies) */
+        body.theme-ac4 {
+            --hud-rgb: 0, 229, 255;
+            --bg-1: #001a33;
+            --bg-2: #00050d;
+            --bg-3: #000000;
+            --ally-rgb: 51, 255, 51;
+            --enemy-rgb: 255, 51, 0;
+        }
+
+        /* THÈME : ACE COMBAT 5 (The Unsung War) */
+        body.theme-ac5 {
+            --hud-rgb: 51, 255, 51;
+            --bg-1: #001a00;
+            --bg-2: #000a00;
+            --bg-3: #000000;
+            --ally-rgb: 0, 191, 255;
+            --enemy-rgb: 255, 51, 0;
+        }
+
+        /* THÈME : ACE COMBAT 6 (Fires of Liberation) */
+        body.theme-ac6 {
+            --hud-rgb: 255, 184, 51;
+            --bg-1: #1a1a2e;
+            --bg-2: #0f0f1a;
+            --bg-3: #05050a;
+            --ally-rgb: 51, 204, 255;
+            --enemy-rgb: 255, 51, 51;
+        }
+
+        /* THÈME : ACE COMBAT 7 (Skies Unknown) */
+        body.theme-ac7 {
+            --hud-rgb: 230, 242, 255;
+            --bg-1: #000a1a;
+            --bg-2: #000308;
+            --bg-3: #000000;
+            --ally-rgb: 0, 170, 255;
+            --enemy-rgb: 255, 0, 0;
         }
 
         body, html {
+            /* Variables dérivées (Ne pas modifier) — recalculées ici, sur body/html,
+               pour qu'elles suivent bien --hud-rgb / --ally-rgb / --enemy-rgb
+               même quand ceux-ci sont écrasés par une classe de thème sur <body> */
+            --hud-color: rgb(var(--hud-rgb));
+            --hud-glow: rgba(var(--hud-rgb), 0.3);
+            --hud-glow-intense: rgba(var(--hud-rgb), 0.8);
+            --ally-color: rgb(var(--ally-rgb));
+            --enemy-color: rgb(var(--enemy-rgb));
+
             margin: 0;
             padding: 0;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle at center, #640a0a 0%, #1a0202 70%, #0d0000 100%);
+            background: radial-gradient(circle at center, var(--bg-1) 0%, var(--bg-2) 70%, var(--bg-3) 100%);
             color: var(--hud-color);
             font-family: 'Share Tech Mono', 'Courier New', monospace;
             overflow: hidden;
             user-select: none;
             -webkit-user-select: none;
-            transition: color 0.3s ease;
+            transition: background 0.5s ease, color 0.3s ease;
         }
 
         body::before {
@@ -33,10 +86,10 @@
             position: absolute;
             top: 0; left: 0; bottom: 0; right: 0;
             background-image: 
-                linear-gradient(rgba(255, 170, 0, 0.05) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 170, 0, 0.05) 1px, transparent 1px),
+                linear-gradient(rgba(var(--hud-rgb), 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(var(--hud-rgb), 0.05) 1px, transparent 1px),
                 linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
-                linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(255, 170, 0, 0.02), rgba(0, 0, 255, 0.06));
+                linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(var(--hud-rgb), 0.02), rgba(0, 0, 255, 0.06));
             background-size: 50px 50px, 50px 50px, 100% 2px, 3px 100%;
             z-index: 20;
             pointer-events: none;
@@ -46,7 +99,7 @@
             position: absolute;
             top: -20%; left: 0;
             width: 100%; height: 15%;
-            background: linear-gradient(to bottom, transparent 0%, rgba(255, 223, 87, 0.3) 80%, var(--hud-glow-intense));
+            background: linear-gradient(to bottom, transparent 0%, rgba(var(--hud-rgb), 0.3) 80%, var(--hud-glow-intense));
             animation: sweep 4s linear infinite;
             z-index: 21;
             pointer-events: none;
@@ -70,6 +123,7 @@
             box-sizing: border-box;
             border: 2px solid var(--hud-glow);
             box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5), 0 0 10px var(--hud-glow);
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
         }
 
         .hud-header {
@@ -79,6 +133,7 @@
             border-bottom: 1px solid var(--hud-glow);
             padding-bottom: 10px;
             gap: 15px;
+            transition: border-color 0.3s ease;
         }
 
         .hud-title {
@@ -111,6 +166,7 @@
             fill: var(--hud-color);
             stroke: var(--hud-color);
             filter: drop-shadow(0 0 3px var(--hud-color));
+            transition: fill 0.3s ease, stroke 0.3s ease, filter 0.3s ease;
         }
 
         .btn-settings {
@@ -167,20 +223,20 @@
         }
 
         .btn-ally {
-            color: #00bfff;
-            border-color: #00bfff;
-            box-shadow: inset 0 0 10px rgba(0, 191, 255, 0.2), 0 0 5px rgba(0, 191, 255, 0.3);
-            text-shadow: 0 0 5px #00bfff;
+            color: var(--ally-color);
+            border-color: var(--ally-color);
+            box-shadow: inset 0 0 10px rgba(var(--ally-rgb), 0.2), 0 0 5px rgba(var(--ally-rgb), 0.3);
+            text-shadow: 0 0 5px var(--ally-color);
         }
-        .btn-ally:hover { background: rgba(0, 191, 255, 0.2); }
+        .btn-ally:hover { background: rgba(var(--ally-rgb), 0.2); }
 
         .btn-enemy {
-            color: #ff003c;
-            border-color: #ff003c;
-            box-shadow: inset 0 0 10px rgba(255, 0, 60, 0.2), 0 0 5px rgba(255, 0, 60, 0.3);
-            text-shadow: 0 0 5px #ff003c;
+            color: var(--enemy-color);
+            border-color: var(--enemy-color);
+            box-shadow: inset 0 0 10px rgba(var(--enemy-rgb), 0.2), 0 0 5px rgba(var(--enemy-rgb), 0.3);
+            text-shadow: 0 0 5px var(--enemy-color);
         }
-        .btn-enemy:hover { background: rgba(255, 0, 60, 0.2); }
+        .btn-enemy:hover { background: rgba(var(--enemy-rgb), 0.2); }
 
         .hud-scoreboard {
             position: absolute;
@@ -195,9 +251,10 @@
             box-shadow: 0 0 15px var(--hud-glow);
             pointer-events: auto;
             letter-spacing: 1px;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
         }
-        .score-ally { color: #00bfff; text-shadow: 0 0 5px #00bfff; }
-        .score-enemy { color: #ff003c; text-shadow: 0 0 5px #ff003c; }
+        .score-ally { color: var(--ally-color); text-shadow: 0 0 5px var(--ally-color); }
+        .score-enemy { color: var(--enemy-color); text-shadow: 0 0 5px var(--enemy-color); }
 
         .killfeed-container {
             position: absolute;
@@ -221,8 +278,8 @@
             white-space: nowrap;
             letter-spacing: 1px;
         }
-        .killfeed-item.ally { border-color: #00bfff; color: #00bfff; text-shadow: 0 0 4px #00bfff; }
-        .killfeed-item.enemy { border-color: #ff003c; color: #ff003c; text-shadow: 0 0 4px #ff003c; }
+        .killfeed-item.ally { border-color: var(--ally-color); color: var(--ally-color); text-shadow: 0 0 4px var(--ally-color); }
+        .killfeed-item.enemy { border-color: var(--enemy-color); color: var(--enemy-color); text-shadow: 0 0 4px var(--enemy-color); }
 
         @keyframes fadeInOut {
             0% { opacity: 0; transform: translateX(20px); }
@@ -250,13 +307,14 @@
         }
 
         .modal-content {
-            background: #1a0800;
+            background: #1a0800; /* Fond très sombre par défaut */
             border: 2px solid var(--hud-color);
             box-shadow: 0 0 25px var(--hud-glow);
             padding: 30px;
-            width: 350px;
+            width: 400px;
             box-sizing: border-box;
             position: relative;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
         }
 
         .modal-header {
@@ -267,6 +325,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            transition: border-color 0.3s ease;
         }
 
         .modal-close {
@@ -287,6 +346,7 @@
             font-size: 0.75rem;
             letter-spacing: 1px;
             opacity: 0.55;
+            transition: border-color 0.3s ease;
         }
 
         .setting-group { margin-bottom: 20px; }
@@ -302,15 +362,15 @@
             font-size: 1rem;
             box-sizing: border-box;
             outline: none;
-            /* Indispensable pour que le clavier s'ouvre sur un écran tactile web-engine */
             user-select: auto;
             -webkit-user-select: auto;
             pointer-events: auto;
+            transition: border-color 0.3s ease, color 0.3s ease;
         }
 
-        /* Nouveaux styles pour les boutons de langue */
         .lang-toggle-container {
             display: flex;
+            flex-wrap: wrap;
             gap: 10px;
             width: 100%;
         }
@@ -331,7 +391,7 @@
         }
 
         .btn-lang.active {
-            background: rgba(255, 170, 0, 0.2);
+            background: rgba(var(--hud-rgb), 0.2);
             box-shadow: inset 0 0 10px var(--hud-glow);
             text-shadow: 0 0 5px var(--hud-color);
         }
@@ -355,6 +415,7 @@
             width: 100%; height: 100%;
             object-fit: contain;
             opacity: 0.7;
+            /* Le filtre dépend du HUD pour matcher l'ambiance */
             filter: grayscale(100%) contrast(150%) brightness(60%) sepia(100%) hue-rotate(300deg) drop-shadow(0 0 10px var(--hud-glow));
             position: absolute;
             top: 0; left: 0;
@@ -366,33 +427,33 @@
         .marker {
             position: absolute;
             width: 15px; height: 15px;
-            border: 2px solid #00bfff;
-            background-color: rgba(0, 191, 255, 0.3);
+            border: 2px solid var(--ally-color);
+            background-color: rgba(var(--ally-rgb), 0.3);
             border-radius: 50%;
             transform: translate(-50%, -50%);
-            box-shadow: 0 0 10px #00bfff;
+            box-shadow: 0 0 10px var(--ally-color);
         }
         .marker::after {
             content: attr(data-label);
             position: absolute;
             top: 20px; left: 20px;
-            color: #00bfff;
+            color: var(--ally-color);
             font-size: 14px;
             white-space: nowrap;
-            text-shadow: 0 0 5px #00bfff;
+            text-shadow: 0 0 5px var(--ally-color);
             background: rgba(0,0,0,0.7);
             padding: 2px 5px;
-            border-left: 2px solid #00bfff;
+            border-left: 2px solid var(--ally-color);
         }
         .marker.enemy {
-            border-color: #ff003c;
-            background-color: rgba(255, 0, 60, 0.3);
-            box-shadow: 0 0 10px #ff003c;
+            border-color: var(--enemy-color);
+            background-color: rgba(var(--enemy-rgb), 0.3);
+            box-shadow: 0 0 10px var(--enemy-color);
         }
         .marker.enemy::after {
-            color: #ff003c;
-            text-shadow: 0 0 5px #ff003c;
-            border-left-color: #ff003c;
+            color: var(--enemy-color);
+            text-shadow: 0 0 5px var(--enemy-color);
+            border-left-color: var(--enemy-color);
         }
 
         @keyframes pulse {
@@ -403,7 +464,7 @@
             position: absolute;
             top: 50%; left: 50%;
             width: 100%; height: 100%;
-            border: 2px solid #ff003c;
+            border: 2px solid var(--enemy-color);
             border-radius: 50%;
             animation: pulse 1.5s infinite ease-out;
             pointer-events: none;
@@ -425,8 +486,8 @@
             transform-origin: center;
             z-index: 6;
         }
-        .unit.ally { color: #00bfff; filter: drop-shadow(0 0 3px #00bfff); }
-        .unit.enemy { color: #ff003c; filter: drop-shadow(0 0 3px #ff003c); }
+        .unit.ally { color: var(--ally-color); filter: drop-shadow(0 0 3px var(--ally-color)); }
+        .unit.enemy { color: var(--enemy-color); filter: drop-shadow(0 0 3px var(--enemy-color)); }
 
         .trail {
             position: absolute;
@@ -437,8 +498,8 @@
             z-index: 4;
             will-change: opacity;
         }
-        .trail.ally { background-color: #00bfff; box-shadow: 0 0 2px #00bfff; }
-        .trail.enemy { background-color: #ff003c; box-shadow: 0 0 2px #ff003c; }
+        .trail.ally { background-color: var(--ally-color); box-shadow: 0 0 2px var(--ally-color); }
+        .trail.enemy { background-color: var(--enemy-color); box-shadow: 0 0 2px var(--enemy-color); }
 
         .explosion {
             position: absolute;
@@ -451,7 +512,7 @@
         }
         @keyframes explode {
             0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
-            100% { transform: translate(-50%, -50%) scale(3); opacity: 0; background: #ff003c; }
+            100% { transform: translate(-50%, -50%) scale(3); opacity: 0; background: var(--enemy-color); }
         }
     </style>
 </head>
@@ -495,13 +556,11 @@
         </div>
         
         <div class="hud-controls">
-            <!-- Côté Alliés -->
             <div style="display: flex; flex-direction: column; gap: 15px; align-items: flex-start;">
                 <button id="btn-spawn-ally" class="btn-tactical btn-ally">> DEPLOY ALLY</button>
                 <button id="btn-base-ally" class="btn-tactical btn-ally">> + BASE ALLY</button>
             </div>
             
-            <!-- Côté Ennemis -->
             <div style="display: flex; flex-direction: column; gap: 15px; align-items: flex-end;">
                 <button id="btn-spawn-enemy" class="btn-tactical btn-enemy">< DEPLOY ENEMY</button>
                 <button id="btn-base-enemy" class="btn-tactical btn-enemy">< + BASE ENEMY</button>
@@ -524,10 +583,20 @@
             </div>
             <div class="setting-group">
                 <label id="lbl-lang">> LANGUE SYSTÈME / SYSTEM LANGUAGE</label>
-                <!-- Remplacement du select par des boutons tactiles -->
                 <div class="lang-toggle-container">
                     <button id="btn-lang-fr" class="btn-lang active">FR</button>
                     <button id="btn-lang-en" class="btn-lang">EN</button>
+                </div>
+            </div>
+            <!-- Ajout des sélecteurs de style Ace Combat -->
+            <div class="setting-group">
+                <label id="lbl-theme">> STYLE HUD / HUD STYLE</label>
+                <div class="lang-toggle-container" id="theme-selector">
+                    <button class="btn-lang active" data-theme="default">AC0</button>
+                    <button class="btn-lang" data-theme="theme-ac4">AC4</button>
+                    <button class="btn-lang" data-theme="theme-ac5">AC5</button>
+                    <button class="btn-lang" data-theme="theme-ac6">AC6</button>
+                    <button class="btn-lang" data-theme="theme-ac7">AC7</button>
                 </div>
             </div>
             <div class="setting-group">
@@ -559,13 +628,13 @@
     </div>
 
     <script>
-        // --- SYSTÈME DE TRADUCTION (i18n) ---
         const i18n = {
             fr: {
                 settingsTitle: "> PARAMÈTRES SYSTÈME",
                 weatherLabel: "> SECTEUR MÉTÉO (VILLE)",
                 weatherPlaceholder: "Ex: Nantes, Paris, Tokyo...",
                 langLabel: "> LANGUE SYSTÈME",
+                themeLabel: "> STYLE HUD",
                 spawnAlly: "> DÉPLOIEMENT ALLIÉ",
                 baseAlly: "> + BASE ALLIÉE",
                 spawnEnemy: "DÉPLOIEMENT ENNEMI <",
@@ -584,6 +653,7 @@
                 weatherLabel: "> WEATHER SECTOR (CITY)",
                 weatherPlaceholder: "Ex: Nantes, Paris, Tokyo...",
                 langLabel: "> SYSTEM LANGUAGE",
+                themeLabel: "> HUD STYLE",
                 spawnAlly: "> DEPLOY ALLY",
                 baseAlly: "> + BASE ALLY",
                 spawnEnemy: "< DEPLOY ENEMY",
@@ -611,6 +681,7 @@
             document.getElementById('lbl-weather').textContent = t.weatherLabel;
             document.getElementById('location-search').placeholder = t.weatherPlaceholder;
             document.getElementById('lbl-lang').textContent = t.langLabel;
+            document.getElementById('lbl-theme').textContent = t.themeLabel;
             document.getElementById('lbl-credits').textContent = t.credits;
 
             document.getElementById('btn-spawn-ally').textContent = t.spawnAlly;
@@ -629,7 +700,6 @@
             }
         }
 
-        // --- NOUVEAU SYSTÈME DE LANGUE VIA BOUTONS ---
         const btnLangFr = document.getElementById('btn-lang-fr');
         const btnLangEn = document.getElementById('btn-lang-en');
 
@@ -647,7 +717,39 @@
             updateLanguage();
         });
 
-        // --- INTERFACE GÉNÉRALE ---
+        // --- GESTION DES THÈMES ---
+        const themeButtons = document.querySelectorAll('#theme-selector .btn-lang');
+        const mapImage = document.getElementById('map-image');
+
+        themeButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                themeButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                document.body.className = '';
+                mapImage.style.filter = ''; // Reset CSS filter
+                
+                const theme = btn.getAttribute('data-theme');
+                if (theme !== 'default') {
+                    document.body.classList.add(theme);
+                    
+                    // Ajustement léger du filtre image selon le jeu
+                    if (theme === 'theme-ac4') {
+                        mapImage.style.filter = 'grayscale(100%) contrast(150%) brightness(50%) sepia(100%) hue-rotate(180deg) drop-shadow(0 0 10px var(--hud-glow))';
+                    } else if (theme === 'theme-ac5') {
+                        mapImage.style.filter = 'grayscale(100%) contrast(150%) brightness(50%) sepia(100%) hue-rotate(80deg) drop-shadow(0 0 10px var(--hud-glow))';
+                    } else if (theme === 'theme-ac6') {
+                        mapImage.style.filter = 'grayscale(100%) contrast(150%) brightness(60%) sepia(100%) hue-rotate(10deg) drop-shadow(0 0 10px var(--hud-glow))';
+                    } else if (theme === 'theme-ac7') {
+                        mapImage.style.filter = 'grayscale(100%) contrast(150%) brightness(50%) sepia(100%) hue-rotate(200deg) drop-shadow(0 0 10px var(--hud-glow))';
+                    }
+                } else {
+                    // Defaut AC0
+                    mapImage.style.filter = 'grayscale(100%) contrast(150%) brightness(60%) sepia(100%) hue-rotate(300deg) drop-shadow(0 0 10px var(--hud-glow))';
+                }
+            });
+        });
+
         const modal = document.getElementById('settings-modal');
         document.getElementById('btn-open-settings').addEventListener('click', () => modal.classList.add('active'));
         document.getElementById('btn-close-settings').addEventListener('click', () => modal.classList.remove('active'));
@@ -712,10 +814,7 @@
         fetchWeather(currentLat, currentLon, "Nantes Nord");
         updateLanguage();
 
-        // Actualisation automatique de la météo toutes les 5 minutes (300 000 ms)
-        setInterval(() => {
-            fetchWeather(currentLat, currentLon, currentCity);
-        }, 300000);
+        setInterval(() => { fetchWeather(currentLat, currentLon, currentCity); }, 300000);
 
         const searchInput = document.getElementById('location-search');
         let searchTimeout = null;
@@ -735,7 +834,6 @@
             }, 500);
         });
 
-        // --- GESTION DE LA CARTE ---
         const viewport = document.getElementById('viewport');
         const map = document.getElementById('tactical-map');
         const mapWidth = 3000, mapHeight = 1500;
@@ -806,7 +904,6 @@
 
         initMap();
 
-        // --- GESTION DES UNITÉS & COMBATS ---
         const unitsLayer = document.getElementById('units-layer');
         const waypoints = Array.from(document.querySelectorAll('.objective')).map(el => ({
             x: parseFloat(el.style.left), y: parseFloat(el.style.top), isEnemy: el.classList.contains('enemy')
@@ -981,7 +1078,6 @@
             requestAnimationFrame(animate);
         }
 
-        // --- MODE PLACEMENT DE BASES (TACTILE & CLIC) ---
         let placementMode = null; 
         let tapStartX = 0;
         let tapStartY = 0;
